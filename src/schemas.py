@@ -138,3 +138,76 @@ class NodeState(BaseModel):
     started_at: float | None = None
     completed_at: float | None = None
     retries: int = 0
+
+
+# ── Streaming Events (WebSocket) ─────────────────────────────────────────────
+
+class ExecutorEventNodeCreated(BaseModel):
+    type: Literal["node_created"]
+    session_id: str
+    node_id: str
+    skill_name: str
+    inputs: list[str] = Field(default_factory=list)
+    timestamp: float
+
+
+class ExecutorEventNodeStarted(BaseModel):
+    type: Literal["node_started"]
+    node_id: str
+    skill_name: str
+    timestamp: float
+
+
+class ExecutorEventNodeCompleted(BaseModel):
+    type: Literal["node_completed"]
+    node_id: str
+    skill_name: str
+    status: Literal["complete", "failed"]
+    duration_s: float
+    tokens_in: int = 0
+    tokens_out: int = 0
+    error: str | None = None
+    timestamp: float
+
+
+class ExecutorEventMemoryHit(BaseModel):
+    type: Literal["memory_hit"]
+    node_id: str
+    hit_id: str
+    similarity: float
+    chunk_preview: str
+    source: str
+    timestamp: float
+
+
+class ExecutorEventToolCall(BaseModel):
+    type: Literal["tool_call"]
+    node_id: str
+    tool_name: str
+    tool_input: dict
+    timestamp: float
+
+
+class ExecutorEventCacheHit(BaseModel):
+    type: Literal["cache_hit"]
+    node_id: str
+    model: str
+    tokens_reused: int
+    timestamp: float
+
+
+class ExecutorEventEnd(BaseModel):
+    type: Literal["executor_end"]
+    session_id: str
+    final_answer: str
+    total_tokens: int
+    total_time_s: float
+    timestamp: float
+
+
+# Union type for all events
+ExecutorEvent = (
+    ExecutorEventNodeCreated | ExecutorEventNodeStarted | ExecutorEventNodeCompleted |
+    ExecutorEventMemoryHit | ExecutorEventToolCall | ExecutorEventCacheHit |
+    ExecutorEventEnd
+)

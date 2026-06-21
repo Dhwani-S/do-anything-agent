@@ -6,3 +6,7 @@ crawl4ai
 python-dotenv
 pytest
 pytest-asyncio
+fastapi
+uvicorn[standard]
+websockets
+pydantic

@@ -26,7 +26,7 @@ import memory as memory_svc
 from gateway import ensure_gateway
 from persistence import SessionStore
 from recovery import handle_critic_verdict, plan_recovery
-from schemas import AgentResult, NodeState
+from schemas import AgentResult, NodeState, ExecutorEventNodeCreated, ExecutorEventNodeStarted, ExecutorEventNodeCompleted, ExecutorEventMemoryHit, ExecutorEventEnd
 from skills import SkillRegistry, run_skill
 
 MAX_NODES = 60  # hard cap so a Planner loop cannot grow forever
@@ -173,7 +173,15 @@ class Executor:
         self.registry = registry or SkillRegistry()
 
     async def run(self, query: str, *, session_id: str | None = None,
-                  resume: bool = False) -> str:
+                  resume: bool = False, event_emitter=None) -> str:
+        """Run the executor loop.
+
+        Args:
+            query: User query string
+            session_id: Optional session ID; auto-generated if not provided
+            resume: Whether to resume an existing session
+            event_emitter: Optional async callable(event) for streaming events
+        """
         sid = session_id or f"s8-{uuid.uuid4().hex[:8]}"
         store = SessionStore(sid)
         if resume:
@@ -197,6 +205,22 @@ class Executor:
             graph.add_node("planner", inputs=["USER_QUERY"])
 
         print(f"\n{'═' * 78}\nsession {sid}  ─  query: {query}\n{'═' * 78}")
+        
+        # Helper to emit events if emitter is provided
+        async def emit_event(event) -> None:
+            if event_emitter:
+                await event_emitter(event)
+        
+        # Emit initial session start event with planner node
+        await emit_event(ExecutorEventNodeCreated(
+            type="node_created",
+            session_id=sid,
+            node_id="n:1",
+            skill_name="planner",
+            inputs=["USER_QUERY"],
+            timestamp=time.time(),
+        ))
+        
         # Read memory ONCE at session start; the same hits flow into every
         # skill's prompt. The S7 contract is that every cognitive role sees
         # memory; carrying that forward verbatim here is what makes S7's
@@ -204,6 +228,21 @@ class Executor:
         memory_hits = memory_svc.read(query) or []
         if memory_hits:
             print(f"[memory.read] {len(memory_hits)} hit(s) visible to every skill this run")
+            # Emit memory hits (safe fallback if event_emitter is provided)
+            try:
+                for i, hit in enumerate(memory_hits[:5]):  # Emit first 5 hits
+                    hit_dict = hit.model_dump() if hasattr(hit, 'model_dump') else dict(hit)
+                    await emit_event(ExecutorEventMemoryHit(
+                        type="memory_hit",
+                        node_id="session",
+                        hit_id=hit_dict.get("id", f"mem_{i}"),
+                        similarity=float(hit_dict.get("similarity", 0.0)),
+                        chunk_preview=str(hit_dict.get("descriptor", ""))[:200],
+                        source=hit_dict.get("source", ""),
+                        timestamp=time.time(),
+                    ))
+            except Exception as e:
+                print(f"[flow] warning: could not emit memory hits: {e}")
         try:
             memory_svc.remember(query, source="user_query", run_id=sid)
         except Exception as e:
@@ -229,6 +268,13 @@ class Executor:
 
             for nid in ready:
                 graph.mark(nid, "running")
+                # Emit node started event
+                await emit_event(ExecutorEventNodeStarted(
+                    type="node_started",
+                    node_id=nid,
+                    skill_name=graph.g.nodes[nid]["skill"],
+                    timestamp=time.time(),
+                ))
             store.write_graph(graph.g)
 
             outcomes = await asyncio.gather(*[self._run_one(nid, graph, sid, query, store, memory_hits)
@@ -238,6 +284,20 @@ class Executor:
                 executed_count += 1
                 graph.g.nodes[nid]["result"] = result
                 graph.mark(nid, "complete" if result.success else "failed")
+                
+                # Emit node completed event
+                await emit_event(ExecutorEventNodeCompleted(
+                    type="node_completed",
+                    node_id=nid,
+                    skill_name=graph.g.nodes[nid]["skill"],
+                    status="complete" if result.success else "failed",
+                    duration_s=result.elapsed_s,
+                    tokens_in=int(result.output.get("tokens_in", 0)),
+                    tokens_out=int(result.output.get("tokens_out", 0)),
+                    error=result.error,
+                    timestamp=time.time(),
+                ))
+                
                 store.write_node(NodeState(
                     node_id=nid, skill=graph.g.nodes[nid]["skill"],
                     status=graph.g.nodes[nid]["status"],
@@ -258,7 +318,18 @@ class Executor:
                                                  critic_fail_cap_hit):
                             continue
                         # verdict == pass: the child is now ready to run.
-                    graph.extend_from(nid, result, registry=self.registry)
+                    new_nodes = graph.extend_from(nid, result, registry=self.registry)
+                    # Emit events for newly created nodes
+                    for new_nid in new_nodes:
+                        new_node_data = graph.g.nodes[new_nid]
+                        await emit_event(ExecutorEventNodeCreated(
+                            type="node_created",
+                            session_id=sid,
+                            node_id=new_nid,
+                            skill_name=new_node_data["skill"],
+                            inputs=new_node_data.get("inputs", []),
+                            timestamp=time.time(),
+                        ))
                     if graph.g.nodes[nid]["skill"] == "formatter":
                         fa = result.output.get("final_answer")
                         if isinstance(fa, str) and fa.strip():
@@ -304,6 +375,17 @@ class Executor:
                   f"branches because the Critic rejected the re-planned "
                   f"output too.")
         print(f"\n{'═' * 78}\nFINAL: {(formatter_answer or '')[:600]}\n{'═' * 78}\n")
+        
+        # Emit final executor end event
+        await emit_event(ExecutorEventEnd(
+            type="executor_end",
+            session_id=sid,
+            final_answer=formatter_answer or "",
+            total_tokens=0,  # Could be summed from all nodes
+            total_time_s=0,  # Could calculate from timestamps
+            timestamp=time.time(),
+        ))
+        
         return formatter_answer or ""
 
     async def _run_one(self, nid: str, graph: Graph, sid: str, query: str,
