@@ -5,6 +5,10 @@ import type {
   NodeCreatedEvent, NodeCompletedEvent,
 } from '../types/executor';
 
+const STORE_KEY = 'eagv3-executor-ui';
+const hadStoredSnapshot =
+  typeof window !== 'undefined' && window.localStorage.getItem(STORE_KEY) !== null;
+
 interface TokenTotals {
   in: number;
   out: number;
@@ -51,6 +55,10 @@ interface ExecutorState {
   // Connection state
   isRunning: boolean;
   setRunning: (v: boolean) => void;
+
+  // Hydration state
+  hasHydrated: boolean;
+  restoredFromStorage: boolean;
 }
 
 export const useExecutorStore = create<ExecutorState>()(
@@ -138,9 +146,13 @@ export const useExecutorStore = create<ExecutorState>()(
   // ── Running state ────────────────────────────────────────────────────────
   isRunning: false,
   setRunning: (v) => set({ isRunning: v }),
+
+  // ── Hydration state ──────────────────────────────────────────────────────
+  hasHydrated: false,
+  restoredFromStorage: false,
 }),
   {
-    name: 'eagv3-executor-ui',
+    name: STORE_KEY,
     storage: createJSONStorage(() => localStorage),
     partialize: (state) => ({
       messages: state.messages,
@@ -152,5 +164,11 @@ export const useExecutorStore = create<ExecutorState>()(
       sessionId: state.sessionId,
       devMode: state.devMode,
     }),
+    onRehydrateStorage: () => (_state, error) => {
+      set({
+        hasHydrated: true,
+        restoredFromStorage: !error && hadStoredSnapshot,
+      });
+    },
   },
 ));

@@ -3,10 +3,14 @@
 .env.local
 
 # Local runtime state — regenerated on each run
-code/state/sessions/*/
-!code/state/sessions/.gitkeep
-code/sandbox/*.txt
-code/.venv/
+.plan/
+.venv/
+src/state/sessions/*/
+!src/state/sessions/.gitkeep
+src/state/memory.json
+src/state/index.faiss
+src/state/index_ids.json
+src/sandbox/*.txt
 gateway/.venv/
 gateway/*.db
 gateway/usage.json

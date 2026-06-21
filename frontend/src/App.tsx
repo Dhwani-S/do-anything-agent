@@ -8,6 +8,8 @@ export default function App() {
   const devMode = useExecutorStore((s) => s.devMode);
   const toggleDevMode = useExecutorStore((s) => s.toggleDevMode);
   const isRunning = useExecutorStore((s) => s.isRunning);
+  const hasHydrated = useExecutorStore((s) => s.hasHydrated);
+  const restoredFromStorage = useExecutorStore((s) => s.restoredFromStorage);
 
   return (
     <div className="h-screen flex flex-col bg-[#0f1117] overflow-hidden">
@@ -22,6 +24,12 @@ export default function App() {
           </div>
         </div>
         <div className="flex items-center gap-3">
+          {hasHydrated && restoredFromStorage && (
+            <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-[11px] text-emerald-300">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-300" />
+              Rehydrated
+            </span>
+          )}
           {isRunning && (
             <span className="flex items-center gap-1.5 text-xs text-violet-400">
               <span className="w-2 h-2 rounded-full bg-violet-400 animate-pulse" />
