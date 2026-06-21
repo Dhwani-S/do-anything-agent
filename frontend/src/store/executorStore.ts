@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import type {
   ExecutorEvent, DAGNode, ChatMessage, MemoryHitEvent,
   NodeCreatedEvent, NodeCompletedEvent,
@@ -52,7 +53,8 @@ interface ExecutorState {
   setRunning: (v: boolean) => void;
 }
 
-export const useExecutorStore = create<ExecutorState>((set) => ({
+export const useExecutorStore = create<ExecutorState>()(
+  persist((set) => ({
   // ── Chat ────────────────────────────────────────────────────────────────
   messages: [],
   addMessage: (msg) => set((s) => ({ messages: [...s.messages, msg] })),
@@ -136,4 +138,19 @@ export const useExecutorStore = create<ExecutorState>((set) => ({
   // ── Running state ────────────────────────────────────────────────────────
   isRunning: false,
   setRunning: (v) => set({ isRunning: v }),
-}));
+}),
+  {
+    name: 'eagv3-executor-ui',
+    storage: createJSONStorage(() => localStorage),
+    partialize: (state) => ({
+      messages: state.messages,
+      nodes: state.nodes,
+      nodeOrder: state.nodeOrder,
+      memoryHits: state.memoryHits,
+      tokenTotals: state.tokenTotals,
+      eventLog: state.eventLog,
+      sessionId: state.sessionId,
+      devMode: state.devMode,
+    }),
+  },
+));

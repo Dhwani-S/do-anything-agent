@@ -142,7 +142,7 @@ function NodeDetail({ node, onClose }: { node: DAGNode; onClose: () => void }) {
             <p className="text-slate-500 uppercase tracking-wider text-[10px] mb-1">Timeline</p>
             <div className="space-y-1 font-mono text-[10px] text-slate-400">
               {'timestamp' in startedEvent && <p>Started: {new Date((startedEvent as any).timestamp * 1000).toLocaleTimeString()}</p>}
-              {'timestamp' in completedEvent! && completedEvent && <p>Completed: {new Date((completedEvent as any).timestamp * 1000).toLocaleTimeString()}</p>}
+              {completedEvent && 'timestamp' in completedEvent && (<p>Completed: {new Date((completedEvent as any).timestamp * 1000).toLocaleTimeString()}</p>)}
             </div>
           </section>
         )}
