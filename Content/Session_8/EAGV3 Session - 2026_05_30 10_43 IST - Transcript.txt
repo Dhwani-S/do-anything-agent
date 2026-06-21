@@ -1,0 +1,768 @@
+﻿EAGV3 Session - 2026/05/30 10:43 IST - Transcript
+Transcript
+00:05:00
+padmanabh bosamia: By the way, somebody
+00:15:00
+The Admin: Good morning everyone. If you can hear me, just say hello.
+Jasmeet A Singh: Hello.
+Shanmuga Suntharam: Need help.
+susovan paul: Hello sir.
+Manish Kapoor: Hello.
+Soham Harshe: I know.
+The Admin: Hello,…
+Raju Boddula: kiddo.
+The Admin: All right, let's get started.
+The Admin: Okay, we're good to go. So, here am I. And today we are going to be soling. Let me open my phone also in do not disturb mode so no credit card company can reach me. So Google meet is going to start recording soon and today's session is session 8. we are now getting very close to our final architecture and this is which in the architecture that we see today is the one that we're going to be proceeding. The reason I'm hiding the front page of the today's session is because it looks like this. And even if today Pendang asked me to zoom in, I'm not going to be zooming in. This is the maximum resolution I'm going to show to you on.
+00:20:00
+The Admin: I'm hoping everyone is okay with that. And the reason is this is how you submit your assignments. when you submit your YouTube videos, this is how small it is. Sometimes even smaller, sometimes your widest possible screen. And in that I have to take a microscope and see and by time I see it, I just don't sp. let's all have this experience to understand what I go through when I have to look at your assignments and maybe that will give you some humanity and yeah but yeah so let me zoom slightly more this better okay so today we're going to be seeing working on our session 8 this is a multi- aent DAG orchestration and jokes aside I don't know Ben wrong will be very angry if I don't zoom
+susovan paul: Even me.
+padmanabh bosamia: No, even me. I have to wear my spectacles for it.
+susovan paul: Yeah, I wear two spectacles. Rohan, if you don't believe me, I can switch on my camera,…
+The Admin: Okay.
+The Admin: Only in Okay.
+susovan paul: Yes. please help with our blindness and all those stuff. Please zoom in.
+The Admin: So the learning is when you send your assignment please make sure that it is also zoomed in. I am also human. I also do not have superman eyes. I also need to read. Okay. Okay.
+padmanabh bosamia: Hello. We were actually underestimating I thought you were a superman already, You get the Avengers coming in.
+The Admin: No man not yet. I'm getting old Superman. Okay. You are the
+Sairaj Nadaf: Not the Superman Saki
+The Admin: So today's session is on multi- aent DAG orchestration. DAG is directed a cyclic graph. You're going to understand more about it. this is the final more architecture changes. But today we have a big jump from where we were in the last session. So you'll have to be very careful and I'm going to go slow to make sure you understand everything what is happening because this is going to expand a lot. but before we proceed part one here's a paper that came out literally on 18th of May this is by micros sorry let me zoom in further this is from Facebook and they cover nearly all the agentic strategies and they also claim that code as a agent harness is one of the best strategies and that is precisely what we are doing since beginning and today we have a final nail on that coffin.
+The Admin: So when you get time do read this paper. we've been following this strategy since u egv1 and now in the third version. So it seems like we're going right. before we proceed part two. so the question to you is let us say whatever we're doing on the agentic architecture is not a sequential step one by one but it's a graph okay imagine that our u perception doesn't come out with a sequential thing do this then do this then do this but actually comes out with a graph here's a graph of how the problem can be solved I want to think what all is possible now if it is a graph that means that it look like a graph and if it looks like a graph then we
+The Admin: and draw it like a graph. So, let's pick some fancy color black background. If it looks like a graph, then it's going to be perception calling somebody else. But it could have called something else also and that would be called but that would be calling something else and perception could say that hey this guy needs input from these two then it could call this guy and it can say that this guy feeds this guy and say that this output also goes to this and then finally we have someone who basically similarizes for us but this is a starting node.
+The Admin: So let's say this is a node if that's what is happening then let's see what all can happen. So our S1 comes out and say that okay I'm going to be launching our two node number three. These can be a web search or a rag and a coding agent also right and this can be for example a distiller or summarizer or this can be something like a qualifier or a QA agent right. So the first thing that you should understand from this simple graph is that and we use a term d a dag. So I want you to understand what does it mean? D stands for directed. So you're seeing this is a directed graph, right? So there's a flow to it. Then it's a cyclic which means that there's no cycle. There's no one can talk to two. No, only one will get the information from one, right? And this is actually a diagramraph also. What is the meaning of diagramraph?
+00:25:00
+The Admin: diagramraph basically means that it can talk to itself. We're going to go deeper into it so don't worry on that. So it's diagramraph also. So it can talk to itself. So this is what is our architecture essentially. But moment you look at it, you should realize that node number two and node number three can run parallelly because they're not dependent on each other. That is the biggest achievement that is possible if you follow this kind of structure. Which means moment we have a plan and plan is a graph. we can execute all the nodes that do not have any dependency. That speeds up the whole second thing you need to realize is that let's say one two work perfectly fine or D also worked perfectly fine because it was getting information from one and two but three failed. Now, because this is a graph, you can only run that part of the equation or that part of the graph, right?
+The Admin: That's a beautiful part because if the whole orchestration is running and you ran 10 million agentic calls and finally something was wrong, you do not have to rerun everything. You can literally start take the graph take the part that is corrupted and just run that particular part. So that essentially this part can run again to make only this part can run again to make sure that you do not have to run the whole thing. And another interesting thing is now in this graph you can go and change a specific prompt let's say only for the coder right it worked properly it worked well but you have changed some library and now you want to change it and you want to see so the beautiful part about the graph based agentic architecture is that you can change things it's saved last part is going to be saved but you can change things you can change the prompt you can change the at the back end you can change temperature you can change for example skills and see what is happening
+The Admin: So that is one of the best gift that you can give to your corporation or wherever you're actually putting your agent architecture right so that's what we're going to be learning today and this is what is possible moment our moment we have our orchestration as a graph that's why this is the final architecture now until session seven we had a single loop agent we had one call decision is go to action that is automatic automatically included action is going to dispatch based
+The Admin: on what is needed to be done because we're talking code now and then we have vector beneath everything sending the memory all of that we had so we have three concrete pipelines that work in sequence A b and c right this is the serialization rule that we added that one thing has to happen then second and then third right first people will get married then they will have kids and then kids will go to school but there are things we can do parallel you can't have kids while you're getting married right that's a western culture So it's not something that's not really possible. But there are things that can be done in parallel. for a query like this, let's say we are asking our agent to figure out find the population of London, Paris and Berlin and tell me which two are closest in the size. Now if you think sequentially about this, then you'll have to launch a decision that goes out and finds the population of London and second one goes out and finds the population Paris and third one goes out and find population in Berlin.
+The Admin: Berlin resulting or maybe London didn't result wasn't good because it looked at 24 but Berlin is 26 and then Paris is 25 then everything is confused what do we need to do right so maybe more sequence are required but anyways this a sequential nature and perception can only fetch what is necessary from the previous fetch it goes back to perception perception sees decision is done for London let me now launch for the Paris one right remember in everyone the prompt was going to decision from perception wherever any step was done. So this sequence that we wrote and many of you found that slowly a context is getting bigger and bigger and bigger and started to misbehave because every time context is increasing. Now in session 8 we're removing that barrier completely. What we're saying is that we'll have a single iteration graph where our planner agent we are not calling it perception anymore because now it's not only perceiving it's doing the whole plan in advance.
+The Admin: A planner agent is going to create a graph of what needs to be done. It's going to launch three agents simultaneously. One is for Berlin, the other is for Paris, the third is for London. They're going to do their individual research. Once the research comes in, it's going to go to some other agent who's going to look at everything and summarize and actually answer the question which two are closest in the size. Right? So the logic is that a node is freeun as long as it dependencies are over. It's not going to wait for anyone. we do not have to trigger the running of the graph also that's the beautiful library that we're going to be using. This library is a back end and backbone for many agent systems including lang chain and lang graph you might have heard graph agents and graph based architectures and you're going to see a lot but we are literally picking the base of it. It's like we are not talking about Kali Linux or Android or other stuff.
+00:30:00
+The Admin: We're literally talking about Linux, So network X is the library that we're going to be looking at today and that's the base of all the graph based approaches or graph based algorithms you would ever see. So our graph is going to look something like this. We'll have a User query is going to go through as usual the memory bit that I've not shown here because I didn't want to get a ultra wide screen otherwise you can add a graph for the node also or for the memory also. So you have a User query is going to u memory and from memory we're going to fetch do we have any historical precedences of this kind of query. We're then we're going to send it to planner. the end that you're seeing is this node that's how the graphs are right. So it's called node. colon one that's a node number and then planner is the tag right? That's how we save a graph and that's how the graph will be executed.
+The Admin: So planet looks at it and now it's decided or this It's going to generate the rest of the graph that you're seeing. So if this was an animation, it is an animation. You can see that right now you're only seeing ry. Correct? You're not seeing N1 planner. Are you seeing N1 planner?
+susovan paul: Yes. okay.
+Soham Harshe: below.
+Akhilesh R. Kumar: Yes.
+The Admin: Look at the magic. Suddenly you're going to be seeing N1 planner. Right. Do you only see right now user query admin planner? Are you seeing any other graph in front of it?
+Soham Harshe: No.
+Manish Kapoor: 
+The Admin: No. Correct. the moment and now your planner goes to Gemini, you're going to get 503, right? You can get 503. But if you do not get 503, you may get that you do not have your key properly or your key is expired.
+The Admin: If you don't get your key expired command properly, you may get that Gemini 2.5 is obsolete. All of these things were happening earlier. But if everything is working, you might get a notice that your internet is down. If that is also working, then you are going to see the rest of the graph right now because all this is working, you're seeing the rest of the graph is generated by the planner. So what happens is the query goes to the Memory picks out any important information that we need to patch in. All of that is sent to this whole graph. Planner is generating right now N1 and the edges also basically and that is very important right which node gets information from what is decided by the plan itself. So planner is launching three nodes N2 N3 and N4 researcher and planner attack that I mentioned is actually a scale. We're going to introduce skill also in today's session. What all goes inside? We're going to discuss that. But it is attached with a scale.
+The Admin: So the first node automatically because of the algorithm is going to be The planner skill attached to a node of provides the skill to the node or the agent that It creates a In the graph we have the tag 2 3 it had the ID n2 n3 and n4. It is going to attach a Scale here is called er researcher. And it's going to attach a human readable name London Paris and Berlin.
+The Admin: For us that is not for computers don't need to know what are they called you can call them anything they won't mind if you call them things humans don't like to be called then while it's making graph it's also going to say that the n2 is connected to n5 n3 is connected to n5 n4 is connected to n5 then it's going to say what is five then it's going to say five is actually a node with a coder skill right now the coder skill will automatically be attached with the sandbox executor that's why you're seeing That's seven coming in here because our plan is going to be doing 2 3 4 5 6. Seven we automatically add because that's a security thing that we need to take care of and that's added of course after the graph is done and then that's why you're seeing seven here. executor make sure that everything happens in the sandbox. It's not going to be deleting some stuff and removing some stuff.
+The Admin: I have some good example today to make you understand that what kind of things can go wrong and what do we do to basically make sure that our agents are not aware of your passwords and secrets and then finally we have the answer in between we have some other agents also we are going to be looking at six seven agents that you can just launch creating one other agent is your assignment but I'm going to share how rest of the agents are actually built now this architecture is fast and it's fast because we have the parallelism inbuilt we have the concurrency system where London, Paris and Berlin can actually go live together and at the back end that it happens through Python async.io that you have already seen but that's the final thing that we have.
+00:35:00
+The Admin: The interesting part of this is if coder fails planner is told immediately and then planner is allowed to edit the graph right so we're doing London Paris in Berlin and for some reason our Berlin phrase because you may have asked something very weird question or the website it was going through didn't work or you're using u brave search and you just exhausted all of your search queries let's say thousand queries per month then Berlin failed
+The Admin: In that case planner will know burn and failed and it can actually launch a new graph that is built on top of this once a graph is built. it cannot be deleted but it can be say stale you don't use this particular part of the graph. So all of that is actually in bit but that's the overall idea and on top of that planner can launch another planner. It can look at the whole thing and say you can now plan further right. So all of that is something possible with the architecture that is now becoming I'll say concise compared to what we had earlier. So where are we right now? By the end of session 7 u the agent had four named rule rules. We had pyantic contract. We had vector embedding fires and things that are talking to each other. We had MCP tools for document indexing and vector search. Everything remains. Nothing is being changed from there. Right?
+The Admin: The architecture was correct for the scope for the kind of eight queries we had but the additional queries that I gave you and few queries that were already in the part eight there was a chance that they will fail and some of the students actually encountered that fail and that was because of the sequential nature of the things every time we're calling the planet agent again with the information or perception again with the information or the history it gets bigger and bigger and bigger in Fact there's a comment specifically from a student on that particular problem that by the time I'm the eighth one it's overloaded that it's like having 10 kids and all of the kids coming to you at the same time with their problems right some of you have 10 kids so I know how does it feel right all of them screaming at the same time I need that the course so on all of them in their memory and then you have somebody calling you for money or you're calling somebody and he's not picking
+The Admin: because the person has to give you money, So that's overall idea. So let's read this particular one. Now decision emits the most at most One call per iteration. That's how it was designed. A query needs three web fetches against three URLs. It has to do it thrice one by one. And the serialization was the structure in assignment seven or session seven. The second cost compounds the first. So if the second one is difficult to achieve then the first one basically cialization it's going to compound very fast the perception decision prompts in every iteration include the running history it's going to get bigger and by the time itation 10 comes in it will just give up right but you have architectures like claude where you're coding all the assignments right I know you're not reading your code so that's why I ask you to submit YouTube also and there you have pushing YouTube
+The Admin: Let me again go back to small size just to explain how difficult it is to read in small text, But the idea is that go back. You might realize how okay let me take end to end, right? Like a big good human. This is called humanity. Okay.
+The Admin: But the point is that becomes difficult right when we look at a small screen sorry when we have things that are working in serial then it's going to be big problem by the time we end but you have anti-gravity you have cursor code that works for whole assignment that you submit on a very small resolution or a small pixel size but still it is able to finish end to end and there it is calling it again and again and again right so we need to understand what is happening there and
+The Admin: how is this different from what they're doing and you will see there's lot of similarity on what we're trying to achieve here versus what claude code or Gemini is doing now in those cases it's a very specific agents coding right so their skills are limited and other things are limited so it can launch similar kind of agent again and again to finish the job and there you sort of have a stateful LM right and the context can keep on increasing what we are talking about here you may need to and this is the commercial or enterprise applications where you may have to launch different kind of agent. It's just not coding, right? The whole cloud code itself is going to be a part of the system that we're building. And on top of that, we have many other things there. Maybe building images, presentations, testing the code, doing a internet search, killing someone, paying your GST, all of that might be included in one single architecture. So in session, you're going to see that we make the cost visible also.
+00:40:00
+The Admin: what is the cost of spending a particular query right and there you can actually come back with some idea because when you run these you're going to see that my retriever agent spends these many tokens right then you can think on top of it at enterprise level that do I need to save money there because when you deploy you will have this problem that your agentic systems are consuming a lot of tokens you need to understand where can we save so what is it that we are going to add in this session we're going to be adding six changes right each one has its own a module
+The Admin: in Python is actually a file and existing seven code remains as it is bite byte. So do not change is required there. The first change is orchestration. So instead of agent dot or agent 1 2 3 4 5 6 7. py now we have flow.py and that's the only thing that we have which runs the whole thing. It contains a graph wrapper around network what is network X? That's all very simple. Best things are really really simple. Let me zoom in. This is called humanity. So this is a very small beautiful library where nearly every single mathematical research study architecture adventure
+The Admin: Or things are built on you can literally take network X and write the whole neural network also because many graph networks are built on this right this is literally the Linux of graph system so if you ever get interested in graphs this is what you be looking at so network X is used for data structure for graph diagramraph multigraph many standard graph algorithms are there finding the shortest path to running things parallely the beautiful part and why we're using it the beautiful part about network X is that each node has its own memory has its own execution strategy has its
+The Admin: own trigger right has its own state and that is something that we can save we can run and so all the feature that we are building is actually built on network so we do not have to worry about how do I save a graph how do I connect it how do I make sure it is a diagramraph and not a graph and there not cyclic all of that is something that gets taken care and it's very stable and used by the best and the best so we'll have a flow py which is built on top of network x very small code and we are using a diraph now moment
+The Admin: I say diagramraph I want to look at the second image in how many graphs do you see here one you're only seeing this graph right there is no other graph visible to you so in a diagramraph a node can talk to itself and that's a beautiful thing because if a note if the decision fails we can run it because how the architecture is set right it's a very beautiful thing and we'll leverage this a lot later on where we do not have to send the whole thing to perception and then perception tells or in
+The Admin: case planner says hey say you failed can you fix it right it's a very beautiful thing and in that small twiggle circle we can add a critic or let's say a qualifier or a Q agent also right the whole thing becomes very short and magical and that's what we're going to be using now and our network X is also the executor right so what is executor in our case execute the graph right follow the state and that is deterministic if a node is done its information is going to be automatically sent to the next one if
+The Admin: node is not done then this is diagramraph which means it can call itself if it can be called itself or you have added some scaffolding to call itself right and if a node does not have any dependencies left which means all the arrows coming to it are done then it can just work on its own we do not have to run a loop then that no simple graph dependencies are done proceed very stable. So executor takes a query and a session ID and passes a graph and the per node slack in a disk and it's written as JSON. So very simple again JSON is something that our neural networks learn love anyway. So we can just write it right. So that's a diagramraph you're looking at very beautiful, very simple and easy to execute. Now second is a skill catalog.
+The Admin: So a skill is very similar to a prompt plus MCP for that particular agent combined together. Right? The second change is skill catalog. We're adding six skills and those six skills for us are going to be browser, coder, critic, distill, planner, formatter, researcher, retriever, sandbox, exeutor, and summarizer. Executor. So you see one, two, three. Coder is your assignment. So if I click it, your assignment is done. So I'm not going to click it. Okay. I'm making sure I'm not clicking koda. Yeah. So if I click click coder we assign coder.mmd essentially where browser browser is for session. So Browser is partly done. Yeah. Next one. Distiller formatter planner researcher retriever sandbox exeutor and summarizer. So these are just the simple things that we have and whenever we call them we attach the MCP tools that are required to get this done also. Right. So skill is very very simple.
+00:45:00
+The Admin: So a skill adding a skill catalog basically in future you can add some more skills also and you can download also there are a lot of skills already published on GitHub millions so you can just pick any skill right if you have seen Matrix movie then you remember that Neo asked Trinity do you know how to fly this thing after looking at a helicopter after the beautiful scene where Trinity gets hit on a building and he pulls her up and she basically calls
+The Admin: from I forgot the name some odor not order but someone which ends with the dispatch and she immediately gets a skill to learn a helicopter right that's the skill so right now we have a planner researcher retriever is still a summarizer critic format coder sandbox executor and browser skills browser I'm going to introduce next one each entry name is literally a prompt file or less a tool the skill may call that is literally what a skill is right and we are seeing a lot of MBA thing around it
+The Admin: But u saying prompt plus MCP tool sounds very big. So let's call it a scale. And this has A scale class remains in the skills py. And there we define that this is the prompt, this is the skill or this is the MCP tool attach and send. the reason this is important is because as you have learned through first few sessions that your MCP tools are going to expand a lot just for coding we'll need something like 14 to 15 MCP tools. Now imagine that plus PDF plus latex plus right now.
+The Admin: Self-promotion. I have no idea how to write research papers, the latex part. So, this latex was literally written by claw code. And to write this, it actually launched a skill of called latex paper writer. it found that skill and then it actually wrote that paper right and that's the beautiful part of the skill you can actually make your code do something because latex itself and this is not okay and you might think writing latex is simple I can go to charg also write I also do that right no to I'll show you because it's sort of interesting and important also let me open a new
+The Admin: Hello So when we submit a paper we need this ox file this biblography file this bg file I don't know what it is log file for internal it's literally compiling Linux all of that happens then we have this out file where you need to make sure every single thing is structured properly then there's a PDF that archive renders it differently at their own the text this is massive whole paper needs to be and this is going on this side also I'm not going to zoom this I'm sure you don't want to read
+The Admin: And then there's references biblioraphy also. This is where the references come that That paper was referred. All of that not then needs to be converted into a zip. Then there are fonts right because this paper was specifically about indic fonts which can render it. you may want to render Hindi or Ora in italics also. So a lot of things need to happen. So a simple plot code if I were to use the same plot code that is helping me write this text file also it will just get lost right those are the instances that we need to launch a skill we need to get the skill make sure that we ask one agent that this is your scope this is where you're going to be working and then work then we also have this thing called arch sty this is a style in which the paper needs to publish and there are many styles right if you see how in fact I just showed you that also if you notice
+The Admin: I'm sure you have not noticed which is our point number one this paper as I said this is from I think I didn't open it for you sorry right this is another format this is meta format where in the first thing you have the Facebook blue where they write stuff right and then we have this format which is more like the current ICML format so even for that there's a scale and that's where the skill are going to be super important because you need an agent which can focus on a specific thing and build that for you in that particular let's say context.
+00:50:00
+The Admin: For example, filling GST itself is a skill and you need one agent that is completely engrossed in those ideas with the latest of the references or latest law or even following nasi on Twitter to make sure it's not doing any mistake right so all that is a skill for a specific agent now you're in Bengal the skill changes you make sure that you're Bengali you can prove that you're living in Bengal for a lot and that's going to be a big problem and they can prove that you voted for BJP and not DMC And all of that is a skill So when you talk to someone you need to make sure that everything is aligned properly and then you're saying So we introducing skill catalog you can extend it not in today's session but in future you're going to extend that with as many skills as required. Now each has a prompt file. A skill itself is define skill.py reads a prompt file and then a markdown sorry MCP2 collection and then This is a very interesting way of looking at it.
+The Admin: Here we are seeing an LM orchestrator which for us is the planner. it gets incoming request which is going to be write this paper for me right you just said write this paper for me at the back end a lot of stuff happens and that is what going to happen we have SLM expert the small language model that can be called now because we don't need a lot of stuff for it to happen that does the code generation for the data extraction we have something else translation same guy can do we have a summarization for that an expert we have a translation expert and we have a facteing expert and putting all this together you're going to be spending peanuts compared to what one single let's say 4.8
+The Admin: eight opus can do right so here we save cost also but more importantly it's to contain a particular objective or particular thing in a particular context attributed or assisted by a skill right so skill is not us changing an LLM into becoming something like an accountant and it cannot be done in a continuous chat when you have with the LM can also act like an accountant but certainly believe you have changed the whole context for it. The separation of has happened. So what Separation concern is one guy working on a specific topic and once it's done I just need those 12 files right. So the agent that is helping me write the paper doesn't need to lose a million token context while writing that file. So it's just going to launch another agent which does all of that and then we get result. That's the benefit of scale. So that's the second one. And third is the planner.
+The Admin: Planner for us is going to be again as I said the first node that we are automat automatically Planner is going to create the whole graph. So planner itself is a scale and it can be called later on also and this is the prompt literally for the planner. You are the planner you emit the next set of nodes for the orchestrator. available skills are retriever researcher distiller analyzer critic format coder and a sandbox Your output needs to look like rational. Why are you calling that particular agent? You can't say that manara I just want to call or I'm getting bored. You don't want a proper rational. Why you're calling that specific skill for a specific agent, you need to provide the skill name. Then you need to provide the input. What is it that you want that particular agent to do? What is the metadata? which is going to be labeled.
+The Admin: for example a London researcher agent or a neural network coder something some sort of name that humans can read then we have a question if you have a question like this is what it's going to be doing that's a graph we have right now reference upstream node as n column label because that is what network x understands and that is what we are passing where the label matches the siblings metadata label the final name of must be the formatter we are here saying that finally it has to be formatter right format is going to look everything. What happened? I'm going to say no. Are you going to say I don't know it could have been done in a very different way but we went through 5,000 different files but ultimately we thought that we should give you a very simple answer which is no really depends on what your prompt is. Right now when a user asks to compare or process n concrete items compare ABC top three result emit one node per item. So the orchestrator can run them in parallel.
+The Admin: So we have already told that there when the user demands a strict format constraint or the writer might miss exactly 57 syllables or valid JSON or less than 280 character. Insert This is where the critic part comes Insert the critic node between the writing node and the formatter. Right? It's input is the writing node ID. It's metadata question repeats the constraint. and the metadata question is what we saw earlier also. Metadata constraint question here. So when it's calling critic it's going to say that do you think it's 280 or do you think there are three syllables or do you think the final formatting has Indian rupees and not dollars or do you think the conversion actually happened do you think the result is correct all that goes to critic now if the failure appears in the prompt do not remit the following failing step on the same input example rational look it up and answer node researcher input is a user query label R1 question if you have any for
+00:55:00
+The Admin: critic then call formatter as I said always call the formatter as the last one input is going to be nr1 comes to it then metadata is going to be label out it's a very simple prompt and I'm essentially putting it one line after the other but if I were to collapse it is a very very small prompt examples are there what is it that needs to do the pyantic contract everything's taken care one is a critic that we are seeing here also right and the beautiful part is that whenever planner thinks that for this kind U validation. I think I need to add a check. we're not now forcing the planner to see the result of the decision or the result of the rece retriever to check. You can just add a critic and critic job is very simple, It is not as to evaluate the whole balance sheet. That's not the Critics roles are going to be very simple. The skill catalog marks distiller with true.
+The Admin: Example the graph extension code when adding children to distiller insert the critic node on every outgoing edge. The critics verdict is pass or fail. That's all. If it is pass continues perception would have also said yeah it looks fine go ahead. If it fails the orchestration marks the blockch as skipped and quiz cues one planner recovery node. So it goes back to Planner can look at the whole thing again. Right. So we have this small agent that acts like a critic for whatever is happening. Very fast, very simple. The fifth is the persistent layer. it is okay if you do not want to even understand this or read this or u want to yawn or close your eyes or look at your Instagram right now for the fifth chain. because this is going to be important in time to come, but I've added it already right now. When the graph is executed, as I said, it is all JSON and stuff. So, we are saving it. So, that's a persistent layer. But the beautiful part is we can replay it, right?
+The Admin: For example, assignment is done and you want to replay your assignment in big fonts, right? You can't complain that it was running I forgot or to run it again I am going to be spending 15 minutes I am out of my credits all that** after this. Okay. So the fifth change is persistent layer. Once assignment is done, replay the damn thing. And when you replay it, it's going to pick all the results. You can yawn, you can go wherever you want. It can record the whole thing. Right? And the good part is you can actually start from a specific node also. You can see that start with node number seven. It will only run the rooe number seven. sixth in the gateway we have to add two things. One is to add the parallel LM dispatch which is not there earlier. So now we can figure out free So launches are also parallel if option is there right if it will not call Gemini 3 times because we know we going to exhaust it. And overall around 1500 lines of code is added this includes the prompts. So it's actually not much.
+The Admin: If you remove all the prompts probably somewhere around 500 even including import and other stuff lines are So very minimal code update that has happened the perception memory decision action artifact vector index py mcp server everything by identical to the last session. Okay, I will take some questions from people who submitted Before raising just make sure you have submitted assignments. War has submitted system prompt user prompt.
+varun: So the question is for the squares. Is it like the user I understand there is a system prompt user pro. Is it something like that?
+The Admin: That's correct. User prompt is user query.
+varun: I mean the skills the scales something like system prompt and user prompt. Is it come before it? How does it work?
+The Admin: Skills is the prompt that you wrote last time.
+The Admin: It is There is no User query is there and system prompt is there.
+varun: …
+varun: system is equal to scales you mean.
+The Admin: Scales is system prompt plus MCP tools together which you're already doing but you're doing in a function later on.
+varun: So can you explain draw but okay okay okay okay one more question before we drop so I tried to do the iteration multiple times sometimes it goes in a loop when I try to fix it it usually changes something in the system problem I mean the perception layer it tries to add some line cursor does it so it works But I'm not sure that I read through their last assign the page issue…
+The Admin: it is going to come in. The whole part is there on that. This is the brief of what we're going to cover today. Yeah.
+varun: which you shared. You said that it can be because of go through the logs and so on. I tried to do that but I'm having some issues how it should be debugged.
+The Admin: question is only related to…
+The Admin: what we have here and I already mentioned there are three four different ways in which your session seven can fail don't worry stay after the session I'll answer that okay…
+01:00:00
+varun: Yes. Okay.
+The Admin: then Ashwini it is not cyclic only forward looking.
+Ashwani Bindroo: Hi Rohan.
+Ashwani Bindroo: Two questions. would you help me understand the meaning of a cyclic in DAG? I didn't get that ex exactly. And would you be so kind to go to those u graphs? Yes. And I would like to understand the difference between the first graph which is unidirectioned graph with self loop in the diagramraph you have an arrow which is self-talking. And what does this first graph mean?
+Ashwani Bindroo: And okay clear.
+The Admin: then it's cyclic undirected.
+The Admin: So with self loop everything can go to anything. This is how friends talk to each other with a person who thinks a lot. Three friends and a person who thinks a lot. Clear? Everyone's talking to everyone and everyone can be. But here we have a boss who talks to these people and this guy can think to itself.
+Ashwani Bindroo: All right.
+The Admin: directed versus undirected.
+Ashwani Bindroo: Thank you. Understood.
+The Admin: Okay. then Manish
+Manish Kapoor: Hey everyone. what are we achieving with diagramraph? So what I understand is we can do a multipprocessing with async we can do that also. plus selfch check at padentech level we are doing a check plus a check is available in the code if suppose the decision fails. So what exactly we are working in this particular diagramraph.
+Manish Kapoor: 
+The Admin: No question is between multi diagraph or…
+The Admin: between session seven and session 8 parallelism Sorry.
+Manish Kapoor: So basically what's new is it something like with a import of one library it becomes quite So it becomes quite easy with network graphs or diagramraph kind of a thing then writing the code for everything. okay.
+The Admin: And state statefulness and other stuff we discuss. Yeah.
+Manish Kapoor: Okay. Statefulness is And one more thing Rohan do you think small language graph is one thing small language model is one thing…
+Manish Kapoor: which is coming in then LLM because it can be fast and it can answer the specific questions because they are trained on those specific context.
+The Admin: I know you're mixing two three things.
+The Admin: We are already in the course using small LMS compared to always using big ones because there are some small tasks that can be done by small ones. It's not that they are specifically tuned for something, right? We are still using genic LMS but corporate corporations can decide to train their own LM for a specific use case that can happen.
+Manish Kapoor: Okay.
+The Admin: A good example of that going to be called My keyboard doesn't seem to be yes.
+The Admin: Right, this is one of the best model function gamma and look at the size 270 million just for function calling. So if you had a problem where you just have to call a function you can just use it fast runs anywhere. So there are good cases of small alum coming in for example for audio translation we have small for video generation for summarization. And so there are a lot of big good tools that can just focus on that we don't have to plot called in fact there was a good meme floating around this one we don't have to do this for that we can use SLM okay
+The Admin: Any other question?
+Manish Kapoor: Thank you. Got it.
+The Admin: Then next is going to be first graph that I showed.
+sandeep hegde: Yeah, can you go to the graph that you showed? yeah. So the nodes that you were showing right so I saw the node 7 came before node 6. So that I didn't understood that.
+The Admin: We'll cover it again.
+The Admin: don't but short answer is that we are inserting something and…
+sandeep hegde: Okay. Okay.
+The Admin: we can only insert after we have the graph I know…
+sandeep hegde: Not this one. So I mean the notes that you mentioned before the …
+The Admin: which one but that's what exactly so new network is going to tell us 2 3 4 5 6 it is our responsibility that after coder 7 comes sandbox comes and…
+sandeep hegde: So if you are going to say it later, that's fine. Yeah. Yeah.
+01:05:00
+The Admin: it's named prop Okay,…
+sandeep hegde: Got it. So the planner won't say this, but we have to ensure that it comes. Okay.
+The Admin: just me.
+Jasmeet A Singh: Hey Ron, just quickly with the skills, do we actually limit the skills to small language model calls or…
+The Admin: No, not true. It can go to different ones, but you can attach a small LM For example, for my LTEX, we needed the best LM to write that paper.
+Jasmeet A Singh: Yeah. But if the skills are very specific,…
+The Admin: You can do that right and…
+Jasmeet A Singh: so would that be h Okay.
+The Admin: that's why I showed you the example of that gamma also just for calling functions we can just use very small this is not even SLM this is excess lm if you are into shopping we'll discuss more.
+Jasmeet A Singh: And with the skills, should we actually keep them very small in terms of exact thing that they need to do? for example, if Yeah.
+The Admin: We have a skills topic coming in today. But as I mentioned that latex itself includes compilation,…
+The Admin: lot of different tools and knowing about paper formats and others. It's domain expertise. So when don't say very small skill. We're not saying someone who just hits a nail in carpentry. We're talking about carpenter. Unless just hitting a nail is one of the small job that happens millions of times.
+The Admin: So there is no concrete answer to this question. Okay. S I see that you have not submitted assignment. So you'll have to wait. So sorry is also not submitted.
+Jasmeet A Singh: Okay, thanks.
+Soham Harshe: So planner agent
+The Admin: This is my way of taking a revenge.
+Sairaj Nadaf: I think I submitted the assignment.
+The Admin: Okay let me Go ahead. I'm not inhumane like you guys who submit in small fonts. Go ahead. So, I see your name for seven by the way.
+Sairaj Nadaf: Yeah, that's great. So, yeah. that about the graph perception doesn't have any inderee right in this planning model the perception here doesn't have any inderee …
+Soham Harshe: Okay.
+The Admin: You have not submitted and you're asking the question. repeat again.
+The Admin: perception. What is Sorry,…
+Sairaj Nadaf: if we plan the orchestra in degree means getting in the directed graph it is pointing to another node right some other agent pointing towards the perception thing aside from the user query.
+The Admin: what is in tech? Yeah, that's a query. nothing else.
+Sairaj Nadaf: Yeah, that's Yeah.
+The Admin: This planet is perception. Okay. So,…
+Soham Harshe: So here does the planner decide which LLM to use in a particular sub aent.
+The Admin: you can go to that level in S8.
+Soham Harshe: But otherwise we'll have some node size or…
+The Admin: No, in S8 code that I've shared,…
+Soham Harshe: something. Okay,…
+The Admin: we are taking a call from ourselves that this goes to that belongs.
+Soham Harshe: And the prompt which you had shown earlier just before question session that belongs to planner is it?
+The Admin: Yeah, that's a planner.
+Soham Harshe: Okay. Thank you.
+The Admin: right, last question. Manish.
+Manish Kapoor: So Rohan last assignment we have seen that the context key sometimes increase also. So there are sub goals which once a goal extended it added more sub goals to it. Now once we have the planner execute the network and as per the skill achieve those sub goals how that extended context can be also solution in I mean it can be also done in this particular architecture.
+The Admin: I literally just explained that the planner itself is a skill and it can be added again right so something fails then the context extension is required if something is not fulfilled and critic is complaining that can add itself and extend a graph so graph is not a fixed graph nowhere…
+The Admin: till now I've said that we get a fixed graph and then we execute cut it. The graph itself is dynamic. It can change over a period of time. It will change based on the new information coming in automatically.
+Manish Kapoor: Mhm. Okay.
+Manish Kapoor: Okay.
+The Admin: All right. So, moving on now. from a single loop to DAG as I said is Directed which means every node has a direction or cyclic which means it's not cyclic. it cannot come back to a planner or it cannot come back to decision from something else.
+01:10:00
+The Admin: there are tricks to do it that we have implemented and G stands for graph. a skill in a session 8 is a triple. the third one is something that is controversial. So I'm going to share it with you and probably we're at the level where it is going to go obsolete as well. So listen to me very carefully. Triple would mean that there are three ority or triangle. First is the prompt as I shared. So it's a set of prompt that we saw for planner already. Then a list of MCP tools that are part of it which it can call. So that is also part of the scale. And the third is the Temperature is going to be between 0 and one. And this is something that is added as a catalog. When you add a catalog or when you download from let's say GitHub, it's going to add these things. It is going to register itself with the skills. where it's going to say these are the tools it can call from MCP server. This is a Temperature is something that is getting obsolete. I'm going to be explaining what it was.
+The Admin: Temperature of example for critic was zero. All this is obsolete. So again listen to me very carefully. Zero means zero like you have when we say one that you have full freedom of being creative and when we have a zero that means that yes or no literally your terminator as the laista exactly follow orders one to one so there your verdict is pass or fail in the distiller we will go slightly not so harsh we'll go 0.1 right because it
+The Admin: has to be slightly dynamic. It's distilling information, It is allowed to change a few things. For example, if the result came back that the GDP of India is 4.39 48683 trillion, it will say 4.89, right? Those kind of things it was allowed. Researcher has slightly more freedom to go out and research and some things interesting about what is happening right and planner was point4 serious but still with some freedom. So these were the numbers that people will actually research work with alms and try poking it with different temperatures and come back. But the problem is Gemini 3 documentation is very clear and you are using it I'm using it. It says that recommend our recommendations that keep the temperature at one for So you can go back in the code and set everything to one. I have given the code which works with these numbers and works flawlessly. But the recommendation is one. So probably it's going to be getting obsolete. as I said in the beginning of the course LLMs are moving in direction where they do not want prompt for you.
+The Admin: They do not even want anything from you, Just keep giving them money. They keep running something at their end and you keep feeling productive. they want to come up with that kind of solution, but Sam Alman even anthropic has not been able to do, You just pay $200 every month. LM is doing something at the back end. You're feeling happy. That's a perfect situation for them. So, they're saying don We respect that. We'll not give temperature moving forward. But this is how temperature was being used and I think it is going to be obsolete very very soon. The orchestrator for us earlier it was a loop and you remember the loop that we wrote agent in the that was there but right now the orchestrator is Moment you have a graph network executes it right. So there is no start stop kind of thing. If a service is running moment the graph is there it just starts running and each node decides its own behavior.
+The Admin: If the decision is done, automatically this result is going to be sent to the Next one is going to wait for every three, four different nodes on top of it to finish. Moment they're done, it's just going to start working. It's not going to wait for Sunday, working hours, 9:00 a.m. It won't just execute. And executors loop is very simple. this is essentially how network X works internally, but present it here so you also understand while there exists incomplete nodes. So if there's an incomplete node in the graph ready equal to node whose every predecessor is complete or skipped right a node is skipped or it is done or it is tagged that don't work with it just execute run all ready nodes concretely via a sync gather so work on all the nodes parallelly right you do not have to finish A and then B and C it has six arms so it can work on six together for each completed node extend the graph with any predecessor process successor the skill limited and process the graph
+The Admin: nodes state to Very simple orchestrator that we have. As I mentioned, the planner itself is a scale. The prompt asks a model to emit a next set of graphs or nodes for the plan as a JSON object. The executor reads a JSON. It validates it against the pyetic model, all of that good stuff already Adds a node to the graph. The planner can be invoked at the start of the run or partway through as I mentioned earlier. recovering from a critical failure or let's say more planning is required it's position of graph is the same as any other skill so planner is not a special guy it's just the first thing that we have right so that's a very beautiful change that is happening now right you've done something and in the end we realize I don't think this is the right answer so planner can call itself again and there it can come up with a new graph and start executing the perfect place for anthropic and open AI where your planner fails and keeps calling itself it keeps improving every day every session it ends
+01:15:00
+The Admin: No, Again, I don't like the answer. For that, we valid that okay, we can do it only twice just to piss off OpenAI and Codex, but you're free to type that 2 million times. And if it is your last in your company, I suggest run this thing with 2 million iterations and then So this is the metal level shift that is happening from a session 7 to session 8. The model was inside the agent iteration loop. But here the model writes the graph, Once the graph is there, it executes and graph can grow. That's the biggest change that is happening.
+The Admin: The diagram below shows the population question that I had earlier for London, Paris and Berlin and how it might actually evolve. The planner fans out the three researcher nodes one is for the London other for Paris other is Berlin. Again let's read how the graph looks User query goes to the memory not shown here because if I had shown it will look very small and then palong will not be happy and other guys will also be saying that I'm inhuman for showing fonts in a small size but you can do it. So user query goes to the From memory we pick the things that are very similar. All that code fires rack remains embedding everything same that along with the user query goes to the Planner is now supposed to create the Planner comes out with 2 3 4 5 6. Right now whenever in the graph we see there is a coder we are going to be adding the sandbox exeutor from our side.
+The Admin: Now because we're inserting a new graph on our side, the number is going to be seventh because we do not want to go back to our planner and confuse that what you are calling six now is seven but what you calling nine is going to be called nine only but what you had called 10 has become 14. We don't want to confuse the planner because it might go back to planner is not going to be seeing seven by the So we have two 3 4 that's a node ID. Then we have the ner ing the researcher. We have the planner attaching the skill name here called coder. We have the planner attaching the formatter. We have nothing else. And after that, we have a colon, right? these two dots, they're called column. This is for you and me to see. Planner has nothing to do with it. It can label it for human readable. UIUX. So, you can know, okay, what is the researcher doing to London, right?
+The Admin: Because you let's ask a simple question what is my agent launches four researchers and you're wondering what is it doing why it has called you need to know right checking adha checking your pan checking your marriage ID and checking your school history it can launch 100 agent but you need to know what all it's launching so that's for us very important line the graph is dynamic new nodes are added as nodes complete so the structure visible at iteration is really the structure at termination so infrastructure can keep on evolving. That's a beautiful part of the research. We do not know how the life is going to be, Similarly, we do not know how the graph is going to be. So, if your boss or if your investor or anyone comes in, we ask you how much time left, you're going to look at it and say, I really don't know because I don't know if to stop or not, Instead of saying around 15 minutes, don't do that. Population query.
+The Admin: So I ran it on session 8 and session 7 at the same time to figure out how much time we are spending in session seven and how much time we're going to spend in session 8. So I want you to also do the experiment. The query is very simple. Find the population of London, Paris, Berlin and tell me which of the two are closest in size. if you run again session seven, you're going to see that the London agent is going to issue a web search fetches a page retry retries on 400 if you're getting 404. Finally lands the content finally gets the content it five to six handles of paris on one retry.
+The Admin: Then itation 8 handles Berlin and remaining iteration our perceptions goals bookkeeping I've done Berlin I've done Paris I've done London all of that is managing and after the decision synthesis the gateway is going to show that we have 60 calls in total to handle something like this 22 worker tracks in between them 20 router classification calls because we have to call LMS also 20 times and we have 18 memory read just for the single query can you imagine This is session seven. This is how bad the code was, And look how Session 8 is 10 times faster than iPhone 1. That's how iPhone also released, right? And 14 times more expensive than iPhone 1 or double the memory on GPU and blah blah. Same thing in session 8, we have flow. the trade shows seven nodes, seven.
+01:20:00
+The Admin: The wall clock is 62 seconds compared to 144 that we spent earlier. The gateway log sees that we have 15 total calls instead of 22 260 calls we had 60 calls we had earlier. 13 worker chats instead of 22 earlier. Zero auto classification calls because we already classified it. So that's lying and two embeddings right we fetching the embeddings also. The two embeddings are the start of the run memory read that is there by default whose fire sees that whether we have searched for this query or not. Zero auto calls come from is rout pilling. So in the YAML we are pinning. So somebody asked a question can the planner decide that this skill should be launched with that answer is yes but not for this session because we want to keep it simple here we have pinned the LM for a specific agent.
+The Admin: So we are not using router essentially in this but here's what is happening everything happens in 62 seconds end to end some of the elapse if you were to do it in session 7 you're going to be spending 131 seconds right let's less compute faster and the reason actually goes back simply that our researchers can work in parallel and you can see because of a sync IO the total cost of these three is 42 seconds because that's the max that our end to spend right a syncio is going to end is going to say I'm
+The Admin: after everything inside it is done as we discussed in session one and two right but you can see that 2x speed up so there are the three observation that are required to be explicit here which I've already shared with you but what a sync I gather which is going to be causing the 42 seconds so it has to wait for one of the thing that's a drawback essentially right if one query takes very long we have to wait for it but still going to be shorter compared to a sequential call and that rarely happens that one extends for 10 times Okay, the token build comparison is actually massive and I wanted to bring the session 7 loops resends the cumulative history to both perception and decision every time by iteration Each call carries 10 iterations worth of accumulative memory 54,000 tokens across the run.
+The Admin: That's the number token we are processing for a simple question same total number of tokens required to process is 50 4,000 in session 8 we are going to be looking at something like 17,000 so very less that's the advantage of the parallelism or the architecture we're discussing both are right it's not that the first is not going to be giving you correct result but you can see that there's cost saving, there's time saving and everything else that comes with it. But please remember the u teaching point here is not the speed up. I'm not saying that this is fast and that's why you should use it. The teaching point here is this the shape of the trace. How the memory is flowing, how the communication is happening internally. How one agent can decide it has failed or not and the graph ensures that it can be called again.
+The Admin: Critic itself can be attached to any single node and we don't have to worry about that it has to go back to planner and the planner is going to critic all that can be taken care of by a very simple architecture that we are introducing now how does the node fire all this now is something I've already explained to you we have a user query that is basically going to be attached to the prompt which is under the planner MD that's the first node that we have we have the memory which are also going to be attached right here the memory read is there all that we had in last one remains
+The Admin: through memory hits a plumbing exactly as we did in session seven. So nothing changes there as well. The planner is going to be returning something like this. This is what we get. We're going to get a researcher input is going to be use of query. We're going to get London as a label. Question is current view. What is the current population of London? Second one, what is Third one, what is the current population of Berlin? Then we have a label compare, That goes to who? Coder. And we are asking London, Paris, and Berlin. And you're going to see It just has to say input that guy. Everything else is going to be handled by the code magically. Finally, we have a formatter which is going to format everything for us. this is also explained but let me just touch upon this earlier. Parallel fan out and the barrier here is the sync IO.
+The Admin: Basically it says that for some reason because we need to talk about the drawbacks also for some reason which is one in 1 million the structure was such that a syncio got three functions to run and one of them was supposed to run for 5 second the other was 2 second but the third one was 4 hours then the whole thing is going to take 4 hours. So how's it different from In sequential you would wait for 4 hours there's nothing happening there but then next one is faster. So you feel happy that okay traffic has moved I'm not stuck in traffic always but here you will feel that okay you're just stuck right because unless everything is done we can't see inside results also. So if the 2C and the 5 second failed that means that the whole four hours has to be run again. Whereas in the other case we would have seen the four hour failed and second and third is not even run or second run a second two second one run 3 second one run and four hour failed.
+01:25:00
+The Admin: That's a big bottleneck that you need to be aware of. We'll work on it. How do we fix that later on This explained. the critic group and what it can't see. the critic is kept in a way where we can actually use SLMs. critic is going to be reading some other LM output and it's going to emit a verdict pass or fail. So, when critic is attached by the planner, we're going to see that critic has a single question that do you think this guy has passed or fail? Right? That's for what most of the fathers do when their daughters introduce a boyfriend. He looks at it for hours and then three questions and only single word pass or fail. That's what we see in the movies at least, right? So that's how the critics work. So is going to say pass or fail for us and for a specific scale called distiller we have added critic automatically. Right?
+The Admin: So that is the architecture call you can decide that I want to add it for coder also coders are part of assignments you can decide on your own and u if the critic fails it triggers the planner again so who calls the planner critic calls the planner and you can again debate this with yourself that I would like the planner to see every single of course you have 100 million tokens every day for you can do that if you don't then this is the
+The Admin: I'll say the least token consuming architecture that works perfectly well okay look at this small query write a ha coup about quantum entire what does it mean to say write a hiku anybody if just raise your hand do you know okay so…
+Swapnil Gusani: Yeah, it is a specific sequence of number of syllables. let's see.
+The Admin: if then solve this question. Write a hypo about quantum entanglement. he was lying. It's a difficult thing actually. So haiku essentially is kind of poem but it has a fouriction inside. The haiku must be exactly 464 syllable. Right? We're going to see the solution of how it looks not a traditional 575. Count It has a count also.
+The Admin: the critic is going to call count. So that's where the critic essentially gets it. Critic knows exactly what needs to be done and planner makes sure the critics's job is simple and these are the only few things you need to check. this is the important part. This is where we have the enterprise coming in. when you're going to be running your code and I'm going to directly take you to a table because that's all what matters and it's coming late so I'll go back again but I want to show you that table first.
+The Admin: There's supposed to be a table here. Maybe it's not rendering properly. One second. Let me add a table because it's important.
+The Admin: So, in the sandbox that we're going to be executing the code, we're going to be providing some variables to it. And the vables are first variable is called path. It is going to tell the operating system where the executable program is going to run. And that is going to be in a special folder where code can't even go out and look for any other file. One of the most important things we need to do when we are in enterprise because moment you can look outside, what happens when you look outside, So don't do that. the current users home directory that's another folder where the public files or some other files can be there, right?
+The Admin: We can access that but we can only execute our code here. and you have to give special permission to copy something from there to here. The language we are only allowing us f uft8 this will make sure that the uni code actually can be just sent as a executable where we can run random code. So we throwing that away also. This is the most important one. We're going to be passing the lc all as one of the command when we are launching the sandbox. many of you may not be aware but the moment you do it all the environment variables are hidden So when you're writing your code or when you're uploading to git or when you're uploading to or even let's say some server connection your environment has all of these variables decide defined for your agent to use it properly. Especially when you're pushing on git, right? You're not putting token every time.
+01:30:00
+The Admin: But if you say LC all it's going to override everything. It doesn't even know where get is. So all the keys are hidden. So that's why these kind of things are very important. That's why the code runs in the sandbox and we guarantee to some extent that hacking won't happen or it will not use some keys that are sensitive and just use it for something else. And then we have this LCC type control character classification. What can it write? So those kind of stuff, So that is what goes inside the sandbox. So whenever coder writes any code, it's going to be running in the sandbox.
+The Admin: The sandbox executor code is already shared. You just need to plug in the coder a prompt in such a way that can solve the problem that is going to be part of the assignment. So that becomes very simple and sandbox is a very important part as we move forward especially because you might be compiling things or processing your CSVs. It should not leak out for enterprise. It's one of the very big requirement. So that table essentially is what we are looking at and we're ensuring it's Persistence and resume. this is important because you may want to run the graph. You may want to run only a part of it. You want to run telematics on it to make sure that how much time or token distill Why coder failed just run the coder again with a prompt change just for the assignment. This is going to be very useful. For example, same query. Find the population of Berlin, Tokyo and Delhi and give me the one that is
+The Admin: at least half of the other one. So in such a case you may want to use a coder there or give me the mean of the smallest one divided by even mode divided by the soft max of the biggest one. If you ask that question kind of question can't answer that directly. So in that case coder needs to be there to write the python code to run it and actually give you that. So all that because basically simple JSON files and we can just run them. These are atomic as I said each one is it's on its own and the way you run anyone you open the JSON you're going to see that you get an ID. So you're just going to say flow.py resume and that particular one and just going to read and just execute a very simple way of looking at the code.
+The Admin: That's the recovery. Yeah, upgrade. I already explained there are two upgrades. one is to Okay, I haven't told you this. the V8 upgrade is very small. when a query is going to the V8 knows that you called that agent and it was part of that session. So now you can see as a part of telematics that agent is consuming a lot of tokens we can track a bit of traceibility that we adding and it returns cost by agent also that your agent X is consuming four dollar per month and you will be worried about it right so we get this kind of output also that's why we're slowly building telematics is a very very important part as we move forward because when you deploy you're going to see you need to know where the SLM works where it doesn't work you use SLM thinking it's working but it works
+The Admin: only 50% of times. So you need to know those statistics. All right. So the queries now that have worked properly. The first one was the minimal say We start with the hello world. So this is our first When we say hello again goes to memory. Have I said hello to this guy ever? Again also not there's embedding that is running for all of that. Unfortunately because the architecture just goes to memory first. It will say yes I said hello 14 times and all of that will still come in and it will also come in that some preferences that you don't want the agent to call hello back you want yourself to be called gearcar so that is going to come back and tell you gear right so that's the first query we have shannon wikipedia the important one right so this is again fetch this and then tell me that works this carryover then the query 1 3
+The Admin: ation that I told you it goes and gets the three CDs then we have a graceful failure read non-existent path txt and tell me what it is right you need to show that it fails and comes back properly and tells you the file doesn't exist right that has to then we have the resumable execution all these are queries that are working by the way for lago and shasha kin shasa find the current population and the growth rates and tell me which is growing fastest so this is something that is going to be killed build at itation 4 by the pal research layer. The graph file on disk contains the plan as complete. Two researchers are complete and one researcher is running. The executive was made with gather at the moment of This is basically in the code it's done in such a way that you run it and you kill it control and then you resume it just to test whether it works or not.
+01:35:00
+The Admin: So the regime loads properly, works properly, goes and final answer Lagos is the fastest growing city approximately 3 78%. So that's the test and the honest design choices for session 8 that I want to share with Five choices in the implementation are simplifications. Naming them is important because we're going to be looking at them in the next one. The first is a sandbox. It's a usability boundary rather than a complete security one. It is not at a stage where you can actually deploy it to the world and say that I have the world's best sandbox. Not yet. We need to actually be very careful about what modules it can call. We have not gone that level and we have not done that yet because we never needed it that much. This is the first time we introducing a coder agent. Slowly we're going to see that code can be complex and need more time sometimes or need more libraries. You may want it to be able to install some libraries.
+The Admin: For example, you have asked for a mattplot lib graph but mattplot lib is not installed in sandbox. So can your agent install it? Those are kind of things that we need to be careful about. So that we have not looked at till now. The second is the midtool call runtime is not supported. Which means that if the researcher is killed three tool calls into a multi-turn system researcher will need to be called So if the tool was midway lm is called the tool was running and you killed we are not saving a state that researcher did work and the tool was working that has not happened the researcher will again have to work in our case that's another drawback we have the third is the critic prompt is we're keeping it generic pass fail we're not asking you to why and what happened right so we're keeping it very simple right now another third way very simplification the fourth there's no skill abstraction layer above yl as of now so skill is
+The Admin: is the YAML entry point. that means it is not yet compatible to all the available skills on GitHub yet. It's a slightly more complex structure that world follows. We follow very simple structure to understand but we are soon going to be syncing it with all world skill works and you can just get install. The fifth is the agent routing the gateway startup is not hot readadable which means changing the pin requires the gateway restart. So if you change something inside the gateway you have to restart it. that's a gateway we are following since quite some time. So no change in that actually.
+The Admin: Session seven we're going to be adding a browser grounded research. It's going to replace the research of fetch URL and web search. So next session is going to be focusing on the browser a lot because there are There are websites we can't visit. Some websites actually need the browser to be there. Sometimes you want something someone to go and click something. That's the browser use that you have heard from. in fact there's something called Apple script. If you ever want to automate something, for example, you have done all the assignments and you want them to be submitted on ask your clot code or your codeex that do you know how to use Apple script? It will say Then you'll say if you're on Mac something similar for Windows also then say that I have logged into my XM account. I wanted to take these files and upload and then you can sleep at least on CEX on cloud code will say okay I've done it.
+The Admin: You have to click okay right okay I've done this then you click okay I've done that and click okay want to get rid of that just use codeex coders will do everything and come I've done it after maybe very long but that's how codex work right so that's the browser use that we're looking at then we probably will add something called a note state where we can start from the tool which is working because if internet was disconnected we do not want the whole thing be just get stuck so we like the tools to be executed moving forward. Also, then we're going to be adding critical tools because sometimes I want to do a much bigger thing. For example, the formatterers asked to create a report of 5,000 words between 4,000 5,000 words and we asking ic is it Critic can't read right. So, it can just call a tool count simple tools for critics to make sure that it can actually work properly.
+The Admin: A critic is telling whether the product was made up to the specification and if you don't give the critic the ver caliber or a scale or a measuring weighing machine weighs like 115 grams we don't want that then the most important thing the semantic chunking right so from session seven now we're going to look at in the next one we're going to introduce particular topic that how do we make sure that the chunking boundaries of the documents are better so this is what we introduced this is expensive
+01:40:00
+The Admin: But this is something that can be a very cheap because you can actually run using a simple model. So that's what we're going to be looking at. And that's all actually the whole code is shared here in the gateway v8. When you click it will download only the VN code. Here you have the session 8 code without the coder and the gateway also inside it. So from the next session onwards I'm going to be sharing only one link something like this session 9 starting code where you'll have both internally.
+The Admin: I'll not share this separately. Then make sure that you can just download one and you can download one. What is your assign build a tag based agent for the problem of your choice. Come up with the problem. Earn me $1 million. And prove the architectures first pass the AI jk query that we have in between are the ones with eight session seven. You can try them also. Design one query that requires a Parallel things. The query must have at least three independent subtask for the planner. So with three fans essentially verify the parallel layer wall clock is the maximum of the branch not That will automatically Design one query that requires a critic verdict. So you need to come up with that kind of query. Make sure it is 454 not 474. Then fill the coder skill. The current promper empty is a stuff. It's empty. You need to go there and add the coder.
+The Admin: replace it with the prompt that emits a Python suitable sandbox executor code and demonstrator coder actually works on a single query right that is something you need to fill in now add one new skill to agent or config this is the new skill I want you to think of right so come up with your own skill and add your own prompt and update the planner that these are skills that are available so think what we can do what skill can we understand our wife if you can build that skill you have passed course I'll give you a certificate Then you have to submit a YouTube demo of course to show 1 2 3 4 5 parts of the assignments are there and read me where I can see the results of 1 2 3 4 5 and they should be in big font so I can read them properly.
+The Admin: Everything else carries from the last session and there is no video here because the course has not ended and video will come after the course ends but it's at the bottom. All right. Now we are open for the questions. So first we have Mohammed Alvar. By the way the course session has ended. So if you don't have any questions you can just run immediately immediately just go and click that red button and exit. Otherwise I'm here for you to answer the question. woman. I can hear you.
+Mohammad Anvar: Hey GL, my question is around the concept of resuming the agent or from location point.
+The Admin: Can you come closer to the mic?
+Mohammad Anvar: Just we have been having this issue I don't know this is the closest I can get. Hope you are able to hear me.
+The Admin: Yeah. Yeah.
+Mohammad Anvar: 
+Mohammad Anvar: All So my question is around the concept of resuming the agent from a save point or point in time. So the file that we saving is that the state of one of the agents that we involved or is the state of the entire system that as a time or…
+Mohammad Anvar: what do you call does it save the state of all agent at once or…
+The Admin: instead of all the agents.
+The Admin: Yeah, We are resuming a flow of the stuff. So you're running the whole graph…
+The Admin: but many des There are some nodes that are saying only pending phone will be running.
+Mohammad Anvar: So when we resume from there we have spawn city so is we have multiple agents in par and…
+The Admin: I'm sorry.
+Mohammad Anvar: 
+Mohammad Anvar: few of them have not So what would this state Does it save immediate state of okay so when we resume this…
+The Admin: Pending either done or pending right so done won't be touched the pending will continue No,…
+Mohammad Anvar: if it has to I'm assuming this is a point at the execution of graph So we have seen the graph not actually goes that can kind of loop amongst itself or go back to a different node with different state. So does it actually store what is the future state of this should be after this is resumed also.
+01:45:00
+The Admin: one second. first of all, I really can't hear you. So, I'm just hoping this is what you're asking. So, at any given moment of time, your graph looks like this. Done.
+The Admin: R is to be run or resumeumable basically if you continue this R would have run or…
+The Admin: would run automatically basically what's the question this is what is saved essentially it made the graph out right based on that we are not calling perception again.
+Mohammad Anvar: Okay, when this is saved,…
+Mohammad Anvar: So when the new name for the perception that we have the agent that creates this graph, it might have already known what should happen when this node is successful after D I call go to R or something. So when the graph is already made or decided these are the nodes that are going to be and this is the flow going to be after this step. So when we save are we also going to save what the future state of the graph actually has to be from this point after this execution has resumed at this point what the new nodes should be invoked or
+The Admin: Yes, that itself is a graph. I explained earlier also when a node is created,…
+The Admin: it is told that this is your objective. These are tools and this is what I'm expecting from you. That is already told to this guy. So for some reason you stop it already knows. It doesn't need to know from anyone. That is what network It's a stateful graph. So every state is known to the node. Yes, every moment the state is updated.
+Mohammad Anvar: I see.
+Mohammad Anvar: So the final state of the graph is also or saved thing from here in the resume. All right then. yeah that's all I have I have. Thanks for that.
+The Admin: Okay.
+Pandurang Patil: Yeah. And this is just on …
+Pandurang Patil: what I was trying to understand is in the previous stage or previous session we had a loop wherein the perception is going to get invoked after the decision has been processed and the perception is going to invoke again. So if…
+The Admin: One second one one second.
+Pandurang Patil: if there is any failure or if there are any re revaluation of the decision or revolution of the you mentioned somewhere it can plan again. Okay.
+The Admin: Two things. If this fails, plan is called again. If this guy s succeeds but has a critic attached to it and critic says fail, this is called again. That's the architecture we are following. what is the question?
+Pandurang Patil: So there is okay probably this is the point wherein when does planner would get invoked again is there okay so that would be decided by the planner or…
+The Admin: Yes. two architecture that we wrote.
+Pandurang Patil: it is the architecture that we would see okay I have one more question but I just lost that question I'll come
+The Admin: All right. Send it.
+sandip jadhav: So the token usage reduction as per my understanding or…
+sandip jadhav: knowledge it's due to we are using skill which are loaded as required unlike CP But…
+The Admin: No is no it is happening…
+The Admin: because we do not have to pass on the state every time back to the planner and for example the planner will not know what happened to D1 D2 and D3 here it just flows we do not have to go back and keep on updating when you have sequential things everything that happened earlier has to be passed on to the next one here things are Not sequential. It is divided essentially.
+sandip jadhav: if you look at the difference between the skill and MCP tools as per my reading it's like the skills are loaded…
+The Admin: Whatever we do in MCP tools, same text is coming here.
+sandip jadhav: but usage with skills token usage reduces right because the skills will only the prescription not Okay.
+The Admin: Wait. You're asking question confusing everyone.
+The Admin: scale is literally the prompt that we had last time and we were infusing the MCP tools it can call when we were building the prompt that is exactly what we're doing right now and just calling it skill earlier the prompt was different and what MCP tools can be called was send as text separately right now all of that combined is being called skill so no token reduction when you have a skill compared to a system prompt Now you change the question.
+sandip jadhav: So it's not a claw skill which is providing the description and the body right. so it's no as per my reading that's…
+The Admin: You've changed the question. It is exactly like what Claude is doing. you need to tell me now is it exactly like how Claude is doing reducing the prompt? No. The token count. Don't change the question.
+01:50:00
+sandip jadhav: why and the cloud side is you can read there is the description of the skill and the body of the skill. So only description is loaded into the memory or the prompt and if that particular skill they need to invoke then only the body part is get read and…
+sandip jadhav: 
+The Admin: No. All right.
+sandip jadhav: that's why the token reduces okay and…
+The Admin: You're confused. Don't confuse others, please. Thank you.
+sandip jadhav: the second question I have is a land graph and other so if my flow is I know my workflow then in that case pardon
+The Admin: Yeah, please wait. We have an agent here. We have skills related to MCP rag. for example web. We have skills related to PDF creation. We have skills related to code. Okay. Say yes.
+sandip jadhav: Yes. Yes.
+The Admin: I have an option of dumping all of them to a say A has already consumed let's say 100K tokens because of injection of all of this and how to use it. Say yes.
+sandip jadhav: Yes. right?
+The Admin: The skills scenario we have A. Okay. And then A knows that we have these skill two and skill three and skill four. It is aware of them. It doesn't know what is inside. It just knows web rag skill, PD code skill.
+The Admin: Yes, for a particular program it launches another agent now called a dash and…
+sandip jadhav: Yes. Yeah,…
+The Admin: with only third skill now because of which it has 10k or maybe 40k tokens that is why the token reduction happens. Are we clear?
+sandip jadhav: 
+sandip jadhav: that's what I was asking. I guess clear no it's wrong…
+The Admin: Yeah, your question was very wrong. Scales is reducing tokens is wrong because you were saying that now I don't need to send a prompt and the MCP tools I will still tell you…
+sandip jadhav: but as we mentioned the definitions of this 1 2 3 4 will be loaded first where as you said the knowledge that agent have I have a four skill but it will only only load all those details of the third as you mentioned the PDF reader or use when it requires. So we
+The Admin: your question is wrong. You started with a question saying the session in session seven we were dumping all In session eight I'm dumping it one by one and that is why I'm using less to conserve.
+The Admin: Is that not what your question…
+sandip jadhav: Okay. Yeah.
+sandip jadhav: So it's clear to me now the question for me may be the wrong. Yeah. Okay.
+The Admin: which is wrong?
+sandip jadhav: Clear.
+The Admin: That is exactly I'm saying the query we are talking about specifically used all the agents with all the skills that were required.
+sandip jadhav: All right.
+The Admin: So it's not that here I use 1 2 3 4 but I only used two the specific prompt we're talking about here I also use 1 2 3 and four. So converting the prompt into skills did not cause reduction.
+sandip jadhav: So right.
+The Admin: Not carrying forward caused the token reduction.
+The Admin: It's very important that you understand because you do the assignment come back and say I use case I'm still seeing the same tokens bl network No,…
+sandip jadhav: 
+sandip jadhav: So I have second question. So this planner architecture the workflow based orchestr if we know the flow of our problem then the land graph or some other solutions fits better or this solution still wins which one is the right choice not win but we know the flow so we don't need to use a planner region to create the plan right so we know state one after state 1 2 3 4 kind of
+The Admin: one of the line in fact let me read that. Control F. Read that.
+sandip jadhav: All right.
+The Admin: Read the second line after comma.
+sandip jadhav: Clear. Yeah.
+The Admin: But if this was fixed, you are free to use anything.
+sandip jadhav: Okay. Thank you.
+The Admin: Hurry.
+hari Prasath: Yeah. Hi Rohan. So I just want to know that you developed a skills for research paper right what you have recently published right.
+The Admin: H. Okay,…
+hari Prasath: So how you mitigate the pluralism and a checkers. Okay.
+The Admin: I didn't develop it. I used what was there. There are a lot of and I hear me out clearly carefully. I did not use a specific skill. I asked Claude to write the paper for me in the latex so I could submit It launched an agent with the latex skill. I didn't do anything. Right. I'll take credit where it's due, but here it's not.
+The Admin: Here claw was smart enough to understand that itself it does not need to read the skill. It launched another agent and that read the latest skill.
+01:55:00
+hari Prasath: Okay, the cloud code and…
+hari Prasath: log have the latex agents which will help us to write.
+The Admin: It has a latest…
+hari Prasath: Okay.
+The Admin: which it used to launch on an agent paper is not written by AI Baba.
+hari Prasath: So, how you mitigate the AI checkers because nowadays a checkers is there in the conferences, Okay. Okay.
+The Admin: The formatting when we write for example if you look at the paper if you look at the formatting I do not know How do I add this line in latex or this line then keep this in alphabetical order…
+The Admin: but keep this higher and so all of that part how do I make the link clickable all of this thing I wrote the paper don't take that credit away from me
+hari Prasath: No, no.
+hari Prasath: I'm asking so you have that from day setup you have developed the things right there will be some assistant right so that is a flow I'm just asking because I'm also used to write the papers so I have read two papers but the problem which I'm facing is exactly the same thing the formatting and these things okay yeah I got The
+The Admin: Yeah, for formatting slot code is really good. It launched an agent and then it wrote all of this stuff for me. it did the formatting all of this for me. Tony start six seven at least and…
+tony james: Hi sorry to ask this question but if I want to submit assignments from this session how to proceed without implementing the previous will I require code from previous session? Can I? Okay. Okay.
+The Admin: there's a big jump. in the school system you're literally starting from nine class.
+The Admin: I realize it will be hard.
+tony james: Got it.
+sandeep hegde: Yeah Ron Ron going back to my previous question on the seventh node which is being inserted in the middle.
+sandeep hegde: So we discussed that so that we have to do it So why a planner is not doing it. So is it because other nodes have LLMs being involved?
+The Admin: Pure node.
+sandeep hegde: So this is a Python code right? Okay. Okay.
+The Admin: Yes. But it still has to be part of the graph…
+sandeep hegde: Okay. Yeah.
+The Admin: because the executor needs to know the network.
+sandeep hegde: Right. Right.
+The Admin: It's Okay. Go ahead.
+sandeep hegde: And one more question I had. this is regarding the last session six assignment. So can I ask now?
+The Admin: No. After the session, please. Okay.
+sandeep hegde: Okay. Sure.
+Avinash Anad: Yeah. Hello Rahan.
+Avinash Anad: So we just saw when you showing the code and all. So there were py files and in the skills catalog you had given different planner, researcher, retriever, distiller, summarizers all that. So what those means means do we need to attach the MD files like planner.md and all to the python and then get it done like that or…
+The Admin: I'm not able to send a question.
+Avinash Anad: so okay so there's a planner thing I want to add a skill to that that means do I need to attach planner.md to it Okay.
+The Admin: Okay, that's correct.
+Avinash Anad: Okay. Plug and play kind of thing.
+The Admin: Yeah, you need to add a plan MD and…
+Avinash Anad: Okay.
+The Admin: there's a YAML file agent config. You need to add some stuff here. The planner It's prompt is tool allowed I mentioned here which is a part of the MCP. So you can have one MCP with thousands of tools and they can say this agent can use this tool. Basically this is how the skill registration happens.
+Avinash Anad: 
+Avinash Anad: So we have a config file where we link basically the MD files the skills to the corresponding roles.
+Avinash Anad: So okay, next one more small question like only critics can call the planner. You told okay okay thank you predict no Okay.
+The Admin: No, either space planners call automatically or…
+The Admin: critical call and When you emit fail, Dr. Seta may invoke the planner to recover.
+Avinash Anad: The procedure. I'll have a look at the code drawing.
+02:00:00
+The Admin: I just made it available. You can download it immediately to check out.
+Avinash Anad: Yes, sir. Okay.
+The Admin: Okay, go ahead.
+Mohit Gupta: Yeah Ron so basically Ron out of the two code bases that you have shared…
+Mohit Gupta: which one should we proceed with to complete the assignment?
+The Admin: I've only shared one code base.
+Mohit Gupta: Down below you showing two links. you were saying that you will be removing one in the next session.
+The Admin: This link has gateway inside it. I've shared it out and…
+Mohit Gupta: Okay. Uh-huh.
+The Admin: inside because people are used to seeing two. So this has gateway also inside it. From next session onward I will not provide it separately.
+Mohit Gupta: So we have to integrate the gateway ourselves. in the down below one session 8 starting code does not have the element gator you said okay understood so the second question is can this all architecture that we have built
+The Admin: It's already integrated. This also includes the same gateway. So I could have decided not to share it. But people are used to seeing the gateway code separately. That's why I'm sharing it separately. Also, you can just download this and nothing else.
+Mohit Gupta: that we'll be building in this session can be achieved through free LLMs or we have to use the paid ones. because last time I really struggled for session 7 to get it executed. I built the session 7 on top of the session six code. I really did not know that you have shared the goal already. but with the free I really struggled but at the end I somehow achieved by changing some prompts and things like that but
+The Admin: I'm only using free …
+Mohit Gupta: It was really difficult with the free ones.
+The Admin: no. I'm only using free one. All of these are free ones.
+Mohit Gupta: All And the last question Rohan so you said It's not necessary for each task critic has to be called right. how will that be decided?
+The Admin: Then I decide start.
+The Admin: Correct.
+Mohit Gupta: At the start of the query that time. Okay. All right. Yeah. Thanks.
+Pandurang Patil: So my question is with respect to the planner is also skill. So there is a system prompt which is been configured with all the skill metadata. does so if planner is getting executed as part of the sub agent separately being invoked that will come as a part of the additional node in that graph.
+The Admin: When it evolve,…
+Pandurang Patil: Did you get my okay so…
+The Admin: if it evolves, you will see it.
+Pandurang Patil: but if I have to pulseive it the way I'm perceiving it that's the right way to perceive that planner is also an independent separate node execution which is generating the further z to be evaluated or the plan to be executed and the planners whatever execution of the planner load has been done.
+Pandurang Patil: It's history is not saved as part of the main agenda.
+The Admin: I did not understand your question.
+Pandurang Patil: So planner is a skill right…
+The Admin: All plan is just like any other node. The only difference is that it gets called first.
+Pandurang Patil: what gets saved in the history if those nodes are getting executed separately independently so the metadata of those nodes or…
+The Admin: Not everything independently everything gets saved work with work with me.
+Pandurang Patil: the execution of that nodes input and output will get saved. in the middle.
+The Admin: This is memory. Okay. user prompt comes in. What will happen? It will be saved in the memory. Clear on this. Okay.
+Pandurang Patil: Yes. Okay.
+The Admin: Then we have the memory attaching some stuff to it saved in the memory. Clear orchestrator launches the planner and here we have the Planner now makes this particular graph that is also there in the memory. So it's a copy of it always. If this fails is stored here it failed.
+Pandurang Patil: So all the data gets saved as part of the Okay.
+The Admin: every case if this page and planner was called. So We'll have the Planner makes That new graph comes in. So exact copy happen here.
+Pandurang Patil: Okay, my question would be now unlike the loop agent wherein the entire history is getting passed to the LLM that won't happen here in this case. the context is different for every node.
+02:05:00
+The Admin: Context is different for every node and planet decides what's that set context.
+Pandurang Patil: What should be passed as a context to every node?
+The Admin: And you're seeing that the lines are the context. For example, if this node needed to know something, so let's draw a graph. If this node needed to know something from this, the planner has to say node number two, node number three, four, five, 6, 7, 8. So when it defines eight, it will say the input is three.
+The Admin: Has to say three and six. This has to happen. And moment it says the context is automatically passed. That's the beauty of network X.
+Pandurang Patil: Planner needs to be whatever plan that has been created that has to be perfect lines of the okay there's one more question I have somewhere in The last question answers somebody asked about the one planner can decide…
+The Admin: Yes, that's why it's going to be Gemini or a bigger one, something like that. But the lines are the context here. If it is correct, edges are the context. Okay. Not in the current session.
+Pandurang Patil: which model to use. right.
+The Admin: In the current session, we have fixed which node goes to which skill is attached to which one.
+Pandurang Patil: But then before I know there is a gateway already…
+The Admin: In future, you can change.
+Pandurang Patil: which is doing the job of which model is going to get used. I'm confused there. So gateway would be sitting at the front right.
+The Admin: Yeah, in the last session remember a gateway we are using that override to keep things simple.
+Pandurang Patil: Right, right, right, right, right. Okay, okay, okay, okay.
+The Admin: So you actually clear the assignment. We can enable it. You can see it can decide on its own but we're keeping that simple as of now. Sep.
+sandeep hegde: Yeah in the same graph so whenever some node fails right you said the node calls the planner right so the okay okay and…
+The Admin: The network X call the planner.
+sandeep hegde: the planner makes a completely new graph based on the previous state of the graph okay and…
+The Admin: It updates the old graph to a new graph. Yes.
+sandeep hegde: every nodes that were there after this failing node, right? So all those gets updated, every other node gets updated, right? Okay.
+The Admin: Only the nodes that need an update will get update planner.
+The Admin: That is why planner needs to be smart. It will not ask the node that did it work properly to work again.
+sandeep hegde: So that means the dependent nodes on this trailing node gets updated also.
+The Admin: All dependent nodes. Correct.
+sandeep hegde: The entire chain gets updated. So based on the Okay.
+The Admin: Okay. S is not asking question. Sep.
+sandip jadhav: So today we are discussing this concept as you also explained this my question is similar to the pond's question. So planner node is defining the flow and the researcher agents are spawn and they are working on their own independent and getting back that result to the planner agent and…
+The Admin: No, no,…
+sandip jadhav: then agent okay it's directly to the next one…
+The Admin: no. This is not what Ponderog also asked. Do you see a line going from researcher to planner?
+sandip jadhav: but u okay but here my question is like if the researcher agent need to communicate between each other so is that there is a possibility Thank you.
+The Admin: No, no. Planner needs to decide that they need to communicate to each other and there is no communicate to each other in our case. Remember every single LM is a stateless LM here. If they need to communicate to each other, they have to launch a new agent that they have already done. The coder is basically these three agents talking to each other. The coder knows what the three did. There are no two agents talking to each other anywhere.
+sandip jadhav: So, I will separate it. I read the concept of the claude where they are coming over agent team where the explanation is sometimes agent need to communicate each other to solve the problem…
+Swapnil Gusani: It's perfect.
+sandip jadhav: if one is not able to solve.
+The Admin: Yeah, that is a stateful agent.
+The Admin: If you have not touched stateful agents till now,…
+sandip jadhav: Okay.
+The Admin: So for example, when I'm talking to you, you know what I'm talking about, which means you're maintaining a state. So if a agent is talking to another agent, the agents need to be stateful.
+The Admin: We are not stateful yet. The graph is stateful, not the agent, not the LM. Okay.
+02:10:00
+sandip jadhav: Okay, clear.
+The Admin: It's okay.
+Swapnil Gusani: yeah in this graph can there be a researcher depending on other researcher…
+Swapnil Gusani: because this looks like h planner can do that okay …
+The Admin: Planner needs to do that. Planner needs to do that. Planner can do that.
+Swapnil Gusani: but there is still a sequence which we tell to the planner to create a graph only in this particular order.
+The Admin: Repeat the question.
+Swapnil Gusani: Does the planner know that it has to create a graph in this order?
+Swapnil Gusani: The coder always comes after researcher and…
+The Admin: Yeah, that's a problem.
+Swapnil Gusani: all those things.
+The Admin: It's smart enough. It's like asking should I buy the milk after drinking the tea?
+Swapnil Gusani: But the question could be about some code also, what if the query is about some code where you have to write a code first and…
+Swapnil Gusani: then do research on that and then say something.
+The Admin: Then the planner is stupid.
+The Admin: We assuming planners are not stupid. Definitely. Yeah,…
+Swapnil Gusani: It can do that.
+The Admin: of course.
+Swapnil Gusani: I have some questions about the previous assignment also. I was having a lot of trouble in running the code out of the box. I also saw that there was no way the entire chunk was able to be passed to decision in any way. for example search knowledge was also having a key slicing of 240 characters. There was slicing in memory also of 400 600 characters.
+Swapnil Gusani: There was no way for decision to actually read the entire memory or the entire chunk which comes from the search. were these things supposed to be fixed? Is there a code where these things are fixed and it will run? I mean can you provide the solution?
+The Admin: Yes. No.
+The Admin: I need to look at the solutions first and then people have solved and the solution I provided solve the eight ones. Question was when you add your five is it solving your five and not screwing up the rest of the eight. So the code already solved the eight queries. If you're now messing up with the prompt and changing things then I can't be solving your assignment.
+Swapnil Gusani: No, not the prompt, but the code itself had some things, right? Like I said, there were slicing happening. There's no way the decision can actually read the entire chunk.
+Swapnil Gusani: Or am I wrong there?
+The Admin: That would mean that you have something and…
+The Admin: because of which your prompt is becoming bigger and that slicing is not taking care of stuff. decision getting slicing sounds what is getting sliced that you need to fix based on the agent that you're using or…
+Swapnil Gusani: No, but the 240 character limit is there in search knowledge,…
+Swapnil Gusani: right? Any chunk which is returned from search knowledge function has a 240 character limit.
+The Admin: That you're using.
+Swapnil Gusani: And similarly there is a limit in memory also where so I'm just confused that what was the assignment about removing these bugs or what was the assignment Okay.
+The Admin: It is not a bug because that same code worked for me and I have the full log of it working. I showed you in the class also. So now when you're adding your bigger chunks and bigger things the chunk size and other needs to be fine- tuned for your documents. So that goes back to you not to me.
+Swapnil Gusani: You are saying if I reduce the chunk size it will start working.
+The Admin: Yes. more chunks.
+Swapnil Gusani: So, that code is supposed to work out of the box without any prompt changes and any code changes.
+The Admin: Yes. One second.
+Swapnil Gusani: Okay. T. Thanks.
+sandeep hegde: Ron, sorry to enter in middle.
+The Admin: One second. before we proceed, this is the Octus one that we built in the last one. We're going to be building the next version of this.
+The Admin: So with guys I'm going to reduce the speed as much as possible and this is what happened last time I'm showing you all the indexes and the whole UI was a class here's a question we have asked find a difference between and you're seeing a graph in the screen and now I'm replaying the graph the same replay that we have written right we have a planner agent that spawns the retriever agent it's retrieving online third retriever agent all of them have already started working in parallel both of them speaks to thinker agent we had a thinker agent also that speaks to another thinker agent that goes to the secondary table agent. All information goes to distiller agent that information goes to formatter agent which gives us this beautiful preview right.
+The Admin: So this was artist one and this is just one of the part if you saw the list the left then we had echo which can speak to you we had rag we have notes we had memory which is remy which I'm going to introduce we had a graph where you can basically add any github library it will convert that into graph we had apps you can create applications there's a u convert to application button on top and many different questions yes for example we have
+02:15:00
+The Admin: this now we're saying start a new agent ground here we have a question I can optimize the query also so I write my query and click optimize that makes it a much bigger or detailed query so I don't have to think about that also and then inside these are skills that you just saw yeah so about these are applications we wrote we rag runs is basically the agentic thing that you're writing right now we ra nodes mcp remy is specifically remembering
+The Admin: everything about me the explorer then canvas to draw things for the agent so they can come up with their own I that you have already done in the UI library that we shared earlier prefab then we have swarm where we can launch a swarm of agents and then they can be called at any time then we have apps these are the applications converted from the agentic runs then we have IDE a clone of cursor on a very small level or Gemini anti-gravity how would you make it that thing we
+The Admin: We had the scheduleuler where you can schedule agents to every 9:00 a.m. morning check the price of gold for some reason. Then we had skills you can add skills there import from GitHub. We had forge which is going to convert your things or your requirement into a beautiful PowerPoint presentation. Then we had console just to look at all the logs that are happening. We had echo where back. We had specific There's some channels that I like gather news from there. For example, Combinator archive. I can select text and talk about a research paper. All that this was one right.
+The Admin: selecting which scale goes to what planner just look at this video this was shared at the beginning of this was a marketing material also but I'm sure you have not seen it so yeah the whole code is released whole code is on GitHub you can look at the last version and what updates we doing you can follow that as well right it's going through all of them one by one on top we're also seeing what is the prompt on the right side we are seeing how much it is cost costing and of what exactly is This is the output of that a huge output. You can see that it's not just 500 600 words much more detailed.
+The Admin: This is the rag description of three kind of rag system that we had. Unsol doesn't search. But if I use a rag properly, then it knows that where is unforcing in the document, Unmole and sync never came together at once in the whole document. But still it knows what is it that we're talking about. These are reports that get generated the memory the graph for my database how is my database linked to each other or on a particular document. These are application that gets created automatically. You can just say create a dashboard for Apple stocks and prefab example why would you want prefab. This is why I would want prefab. You can of course manually create applications also. So for that I added some components.
+The Admin: So you can manually drag and drop them to make UI and make the UI how does it need to look like for your application and here write the context Apple stock we will add a graph random graph and just say Apple stock price for the last 5 years and so on. You just just say what this component should be and click AI button that we had. It will fetch all the details and make that UI for that particular company or particular use case. and you can update it. So you can make a UI that is in January then go back and click update. It will fetch the new information and give to you making a J paper for showing off. Yes, this was the beautiful thing. the whole PowerPoint presentation basically designed by I love the Helvetica one.
+The Admin: This was also beautiful. The art of war. These are scheduled task keep telling me about and these are the skills that we had. You can see there's so many skills that are there.
+The Admin: You can select assign this particular skill to that agent. So you can do reverse also. You can go to skill and say attach to that guy. Then this is I like hacker news. So I I can read a particular news. If I click that opens up. here the browser was not working properly. But once it opens I can select some text and talk doctors issues. So this is your capstone basically and we are going to be like getting the kill hell out of it. This needs to be the worst possible software compared to Arctus true right but everything revolves around that graph you design the graph how the agent can run and get things in order. Sorry Pep gone.
+02:20:00
+The Admin: Okay. Sag.
+pradeep kumar: Sorry I'm talking in m sorry Rohan one question regarding the past session videos where I can find Rohan I missed one class I'm trying to see where I can I tried…
+The Admin: I will not tell you the answer.
+pradeep kumar: but I am not able to find it.
+The Admin: Really this is session four.
+pradeep kumar: Yeah. I'm not sure I'm using this portal.
+The Admin: You have this Take the finger here. Click video. You'll find the video Or you can click the split. You can find the video Here you can find Ge and studio both. And tell me how did complete video. It's there on all the sessions.
+pradeep kumar: This a portal I'm using.
+The Admin: Yeah, you're looking at dashboard.
+The Admin: If you go on dashboard, how will you see the video? You need to be in the session. you need to go to the course and this is my dashboard very different.
+The Admin: But you need to go in your course which is Rav3. There you need to go and check the session. All right.
+pradeep kumar: Yeah, I'm just opening
+The Admin: Is that there?
+Satya Nayak: Yeah. Hi Ron. So I was talking about this planner agent. So this is when a user query comes it decides on itself what is the planner task to be done and then it spawns the agents doing parallel and all that. But if I have to enforce some workflow so is query comes I will enforce that certain workflows to be touched. So where it needs to be done.
+The Admin: You need to make this and give it to the planner and say that this needs to be part of your plan.
+Satya Nayak: In the prompt.
+The Admin: Yeah. Yeah.
+Satya Nayak: Then it decides on itself. Okay. Thank you.
+The Admin: Okay. No,…
+Mani R: Ro the planner itself here the master agent loop I understand okay…
+The Admin: no, no, no, no. Network X executor is the agent loop.
+Mani R: but each node is here the individual agent loop in session seven we have individual agent loop which has all the roles now we are calling each nodes from the single node right or the master orchestrator ated planet mode. It's correct.
+The Admin: I don't know what you're saying. Last time we had a while loop which was the orchestrator. This time we have the executor of network X as orchestrator.
+The Admin: Last time we had the perception that was defining the flow or…
+Mani R: Yes. My question is even the planner node itself a agent or…
+The Admin: what is going to happen in step two, step three. Here we have planner defining the graph. What is the question?
+Mani R: not? That's the question.
+The Admin: Last time also it was this time also we are forcing the planner to be the first one.
+Mani R: Last time we mentioned inside a while loop that means that single loop. Okay. Okay.
+The Admin: Yeah. Difference is which the word that you have not used is a planner is also a skill. That's the difference right.
+The Admin: We are not following the old one where the prompt is saved separately for the planner that will break. Then we have a prompt system and then you have skill system. So we have made Everything is a skill. So that allows us to call planner again also. Or you can make an architecture where everything happens. Then you call a planner again to just relocate something and execute something later on.
+Mani R: One more thing.
+The Admin: So the revenge is that…
+Mani R: I submitted assignment sales but because of the permission issue it didn't get the test score can you check that again no I submitted…
+02:25:00
+The Admin: if you submit assignment late, I evaluate them late.
+Mani R: but the problem is I give permission to your mail ID and admit admission admin that's the problem but I submitted on time session six okay I downloaded the code and…
+The Admin: But then you have to resubmit, right?
+Mani R: I submitted before so I thought I don't need because I made the repo public now that's the only difference okay fine fine I
+The Admin: How will I come to know? You have to resubmit. Okay.
+padmanabh bosamia: Rowan on the current session you have provided two gateways there's a gateway inside SS code also and the gateway outside also I believe you should deleted separately as well okay got it includes This
+The Admin: I want you to read this and tell me What does it say? Thank you. Yes. Okay. Jin exactly same. Yes.
+Jatin Pahuja: Sir here planner is a perception whatever we see in the last session. so I just want to have my understanding clear that the skills critics persistence layer all would be included into the planner or…
+Jatin Pahuja: they would be sync with other parts as well like the skills.
+The Admin: No. Repeat.
+The Admin: Repeat. What are you saying?
+Jatin Pahuja: Yeah. the SLM parts we are doing the coding data extraction summarization would that be coming into the other components or…
+Jatin Pahuja: would that be part of a perception only last assignment I have done clearly…
+The Admin: We have not done the assignment clearly right.
+Jatin Pahuja: but I have not submitted it because that was not complete today I am getting some doubts that is why I'm asking yeah I did it…
+The Admin: You did the last assignment.
+Jatin Pahuja: 
+Jatin Pahuja: but that is So not submitted yet.
+The Admin: So you had a perception, right?
+The Admin: Perception had its own prompt decision.
+Jatin Pahuja: Yeah. Yeah. Correct.
+The Admin: It has Why are you asking the question?
+Jatin Pahuja: Decision prompt.
+The Admin: And now this is going to be inside the planner. If earlier also we have them separately not okay answer me.
+Jatin Pahuja: I just want to map the things which we have introduced today. The skills critic part Okay.
+The Admin: I'm asking we have not introduced this as a new thing today. Why did you ask that question? Earlier also we two different promps. we have more agents with more prompts. Why did you ask that a planner has everything and…
+Jatin Pahuja: I just want to have a sync between all the components in the last session and…
+The Admin: nothing has changed?
+Jatin Pahuja: the components.
+The Admin: Nothing has changed. Last time we had a sequential loop. Now we have a graph. That's all.
+Jatin Pahuja: Okay.
+The Admin: Last time also we had to tell our perception that you have a decision agent.
+The Admin: You can call it. This time also to tell a planner agent that these are the agents that you have. You can call it same thing that only the sequential thing has been made into a graph and…
+Jatin Pahuja: Okay.
+Jatin Pahuja: Okay. Okay. Got it.
+The Admin: for graph you're using network X. That's the only thing that has changed.
+Jatin Pahuja: Okay. Sure.
+The Admin: Any doubt ask me.
+The Admin: T both is there in memory also…
+Dheeraj Hegde: Yeah, with regards to previous instances, right, we had persistent memory being used, right? But as part of the graph, how would that look will it be all in memory or…
+The Admin: because the executor runs in the memory but because network X provides the feature to dump it we're dumping it also at the same time. Last time we had to write that dumping and…
+Dheeraj Hegde: Okay.
+The Admin: then state management everything. Right now we're just leveraging the fact that network X can do it for us.
+Dheeraj Hegde: And we would be able to see that as well.
+The Admin: So simple can see yes it will auto I mentioned that some also
+Dheeraj Hegde: Is it like how we were able Okay.
+The Admin: Yes, all rights are atomic.
+The Admin: The implementation write to a temporary file and calls the OS. Replace a swap to temp file in the place. kill between a temp write and swap leaves the previous file A process kill after the swap leaves the file. So basically everything is being dumped to a temporary file.
+Dheeraj Hegde: Go ahead.
+Dheeraj Hegde: Thanks for that. And another follow-up query probably as a one. It's just that would we be able all the time we use memory and then pass it through the perception or…
+Dheeraj Hegde: the planning layer right so would it be possible to just cache the memory because it would just trying to understand why we do it each time if the query is same then the output also would be the same isn't it okay okay thanks for
+02:30:00
+The Admin: Okay, just keeping the code simple for now.
+The Admin: That's all. Okay. Six.
+Pandurang Patil: Ron, I haven't done any assignment but then I was starting again. I didn't get a time. I'm starting now. So I was trying to locate the session…
+The Admin: Seven. If you have not done any assignment,…
+Pandurang Patil: where you shown introduce the gateway. so I couldn't find it in third and fourth. I was expecting in third or fourth. where does this Okay.
+The Admin: start with 6 7 8.
+Pandurang Patil: So I was trying to understand how does that gateway is being done. So that should be covered in six session.
+The Admin: I've never explained how the gateway works because it's a very simple code literally.
+Pandurang Patil: Okay fair enough. Take it. I'll have a look at it.
+The Admin: Okay. data correct…
+Dheeraj Hegde: Yeah, we were discussing about temperature, right? you were talking about this might get absolute why is that the case?
+The Admin: because this is what the documentation says. Probably
+Dheeraj Hegde: It might be the case that companies might want to earn more money because of that isn't it okay so the option of using temperature itself will go away or how are you seeing Okay.
+Dheeraj Hegde: 
+The Admin: I don't know it is there in the free uses al also I checked that…
+The Admin: but I don't know why they're saying that maybe people don't know how to actually use it that's why they are trying to get away with it they use something with lower temperature get a bad result and then they complain maybe that's why they're saying okay just get rid of it for me. Okay.
+Dheeraj Hegde: Excellent.
+Mohammad Anvar: Hello Roan. so my question is around the framework that we're building. I do not have much knowledge about how antig lang graph or lang chain work. So once we are building something like this the framework that we are building. So it can pretty much answer the queries that you're giving. So what do we do after that?
+Mohammad Anvar: So is it the final piece that we keep using always? what do the AI developers do once you have okay I'm reading that so the framework that we're building I do not have much knowledge of …
+The Admin: Can you please repeat?
+Mohammad Anvar: how lang graph and lang chain work once we build this framework such a framework so it's kind of trying to answer questions or…
+The Admin: No need to know that.
+Mohammad Anvar: do tasks for us right is that a product that we build and…
+Mohammad Anvar: we keep using for different purposes or where do we need a specialized code or a specialized framework once we have this kind of a generic thing that can do things for us.
+The Admin: Someone asked can we add a specific loop to it or…
+The Admin: specific skill to it? That's fair. For example, if you want to implement something in your own company,…
+The Admin: here we have a general one, but there you may have a specific skill that needs to be attached that basically gets integrated here.
+Mohammad Anvar: A skill is kind of just a text file,…
+Mohammad Anvar: So I'm not assuming it's not a Python code or something, right?
+The Admin: So here's my company called Here we have built a full agentic system for construction and I had to write 50 different skills here and…
+The Admin: then make sure all of them work together.
+The Admin: They understand the CAD file. They understand how the project schedule look like. So the full agent system that I have here in school versus there massive difference architecture is same.
+Mohammad Anvar: And…
+Mohammad Anvar: when you say skill, does the skill also talk about what is CAD or what are the different ter terminology? I'm assuming that at least a basic level that's a general knowledge that LLM will already have right so Mhm.
+The Admin: not the GK for example in construction coming back let's say if I ask hey what is the square feet I can build for this area now depending on which city we are in the answer will change right so it needs to know all of that…
+Mohammad Anvar: Okay.
+The Admin: what does the regulation say about the HVAC system for 40story building again it has to know which city where we are what a document needs to refer so all that needs to be part of the scale and systems and provide
+Mohammad Anvar: So the skill is actually technically a kind of a book a text that you're giving to the agent,…
+The Admin: Yes. Are you confused confusing between cloud code and…
+Mohammad Anvar: right? So, yeah. but how the agent behaves on A versus skill B, it's just a behavioral change, not the loops that it goes through. Probably does three iterations on one skill or maybe four on different ones to achieving different task. But what are we changing in the code? when you can actually add skills or inject skills to the coded agent.
+02:35:00
+The Admin: a deployed enterprise application? I'm not expecting my customers to write a new chat or something, right? They just want the whole thing to be at present forever.
+Mohammad Anvar: Got it. So you're technically saying that we have this kind of a product the framework that we have that's probably not going to change unless we need some kind of a technical change…
+Mohammad Anvar: but you can just add skills and when the functionality of the agent changes based on skills only.
+The Admin: Correct.
+Mohammad Anvar: Okay. Thank you.
+The Admin: And think from our point of view. Let's say I have 45 different developers.
+The Admin: At the orchestration level, I need to make sure that the databases the rag is different. I need to scale them separately. working in Maharashtra where the laws are different compared to Bangalore compared to someone building very close to let's say forest land right environmental everything is different so based on that the agents need to adapt now my job is to make sure the agents are adapting based on the requirement are there but all the other skills a file talk to someone connect to WhatsApp or email everything else remains is generic but the skills make them very specific to your use
+Mohammad Anvar: Mhm. Thanks, Rohan.
+The Admin: All right. Who's next? …
+padmanabh bosamia: Ron coming back to temperatures. So do you mean that in future the temperatures would be autodecided? They would have a skills kind of MD which they would have temperatures for different things.
+The Admin: repeat what I just said.
+padmanabh bosamia: Coming back to the temperatures which earlier one person was talking about the temperatures.
+The Admin: Temperature is getting obsolete.
+padmanabh bosamia: Let's say we have mmd for different skills or different things which we do then there would be different temperatures for what you call LMS or something of that stuff in future.
+The Admin: So you will not see them in future it will become use I'm making you aware of the fact that it's getting useless in future.
+padmanabh bosamia: So does it make a difference if we use temperatures or doesn't what's the major because what I see earlier when you shown us that this is what the difference it is making. So if it becomes useless in future what is okay and…
+The Admin: This is very very recent news. If you were to go online and search and you will see mperature. I'm saying that okay I also use temperature but is getting obsoleing it right.
+padmanabh bosamia: 
+padmanabh bosamia: at lln's is when you're looking at one more question just to extend to it. Let's say when you're finding something from an LLM or something of that sort when you asked a question and it is not giving you the accurate results when you use templates probably it would go more towards the required question…
+padmanabh bosamia: then how does it now in future go ahead the LM tries to find out is there a different calculation which is being used or is it something Thanks.
+The Admin: At the server level,…
+The Admin: companies are working to make sure temperature is not usable by us. They're trying to make sure every answer is accurate compared to non-deterministic or most of the AI is being used for agentic use right now. So what people are expecting same answer when use temperature that differs. So LMS don't want to expose that particular thing because temperature exists for the creativity part when temperature is one people expect that we want to get something very very very different every time but then they deploy it enterprise and they realize I'm getting different answers for the same query. They don't want that.
+The Admin: So companies are stopping it.
+padmanabh bosamia: Okay.
+The Admin: So the only answer to your question is I'm teaching you how it was used. In case you have an LM which supports temperature, Gemini is dropping it. and this code worked emini with temperature. They have not dropped it yet. They're making us aware that they are going to be dropping it. When? I don't know.
+padmanabh bosamia: because in all my assignments I've included open AI also.
+padmanabh bosamia: Just looking towards that. Okay.
+The Admin: Drop temperature from session 9 onwards. Okay.
+02:40:00
+Pandurang Patil: So you talked about this function JMA model which is small model how does that can be fitted into this structure because if I have to pass on…
+Pandurang Patil: if the skill has to be processed there are try repling that I get that very small agent I can independently work on it…
+The Admin: We can try replacing decision with it or…
+The Admin: a very very small agent that is only supposed to call a function.
+Pandurang Patil: but then it can that be fitted into this extender archite…
+The Admin: Of course you need to go in the gateway on Olama install that function gamma and attach to particular agent.
+The Admin: So you're totally confused.
+Pandurang Patil: but then which node is going to invoke that so every node would have skills which has configured the multiple function functions as well in that particular skill. So when executing that particular node combination of a skill and input not necessarily I can use the small LM model it will depend on
+The Admin: The question is extremely wrong on multiple fronts. We made Let's say a coder agent. We went to the prompt in the here for example.
+Pandurang Patil: Okay. Right.
+The Admin: We went inside let's call a rag agent. Even simpler. We made a rag agent Then we go in the config. We mention the rag agent here. Right.
+Pandurang Patil: Right. Right.
+The Admin: And here we provide all the tools that rag agent can Clear? And in the settings we also mentioned this rag agent will always go to that particular LM…
+The Admin: which is function whenever planner calls our rag agent that LM only is going to be called. how are we not changing?
+Pandurang Patil: Okay.
+Pandurang Patil: Okay. Okay. Okay. I get it.
+The Admin: Yeah. Yes.
+Pandurang Patil: I get the config.
+The Admin: Configuration. Then we have one second.
+Dheeraj Hegde: And if you go to that graphs diagram for me, So I understand you mentioned we are limiting the planner iterations to say two, right? Because it can probably go to infinite loops. But wouldn't that be the case for rest of the nodes as or are we saying if one of the nodes fail they just get detached and…
+Dheeraj Hegde: the planner and it hands back the control to planner for it to basically again recalculate or evaluate its graph.
+The Admin: The way we have done is…
+The Admin: if the node fails planner gets called or…
+Dheeraj Hegde: Okay.
+The Admin: the node is attached to a critication and cricket critic says fail then the planner get called. So any other node cannot call itself.
+Dheeraj Hegde: So okay so it's only the planner…
+The Admin: Even though network X provides that feature, we have not used it.
+Dheeraj Hegde: which can call itself in as Okay.
+The Admin: Later on as I was showing you in the Arctis video, you saw the final report was very long. to make that long report, we need the formatter agent to call itself multiple times.
+The Admin: So there we are going to use the cyclic feature the self calling feature where the format will keep calling itself to keep appending the report not possible…
+Dheeraj Hegde: So just a followup query on that suppose one of the nodes need to create another sub agent kind of thing might not okay it'll all be planner itself okay that will become more complicated.
+The Admin: unless you go in a prompt change it change the orchestration that a graph can be changed by a sub agent also maybe required at at some use case
+Dheeraj Hegde: Thanks for that. Okay, thanks for
+The Admin: Yeah. Correct.
+lakshmanarao vanimisetti: Rohan is critic playing a role of evaluator like do we I mean I'm kind of confused.
+The Admin: Correct. No.
+lakshmanarao vanimisetti: So is it evaluating the actions like u or the goals created by the planner?
+The Admin: The node, the researcher, the coder, the formatter critic is not going to tell planner your plan is wrong.
+02:45:00
+lakshmanarao vanimisetti: No, maybe the researcher is going according to the planner and then it says pass or fail meaning that someone has failed it like the researcher is failed or…
+lakshmanarao vanimisetti: the goal that is created by planner is wrong like okay…
+The Admin: That is for planet to decide.
+The Admin: We keeping critic very simple pass or fail. Not right now.
+lakshmanarao vanimisetti: but the critic is not sending anything to planet Okay.
+The Admin: I mentioned that in the detail also that we are keeping the planner very simple.
+lakshmanarao vanimisetti: Another question. Rohan I'm kind of building a goddess application in the current organization. thing is I'm getting some response from agents but I need to do an evaluation of what agent is giving. so kind of my question is every time we do even in assessments every time we do something or…
+lakshmanarao vanimisetti: do we need to evaluate the agent's response is it recommended as an enterprise level
+The Admin: Depends if it is a medical scenario,…
+The Admin: every single an agent has to have a evaluator. If it a simple user query, maybe not. If it is something that is crucial for aerospace industry, 100%. If it is something that is going in a media and…
+The Admin: you want to be very clear, maybe at the core junction. So for every use case, the answer is different. For example, you're going to tell a patient that he's suffering from cancer. Every single step has to have a evaluator. If you're calculating his bill, maybe no evaluator.
+lakshmanarao vanimisetti: So that we are going to build in agents memory or…
+lakshmanarao vanimisetti: will it be something like HI or something like that?
+The Admin: That is the task of the architect.
+The Admin: You are the architect. You need to sit for every single use case and make it a part of the orchestration.
+lakshmanarao vanimisetti: Are you going to cover anything in this course by chance? how many evaluators like how we can okay Yes.
+The Admin: Not for a specific use case.
+The Admin: No. But we are designing based on what we think is correct. So what we are telling the planner is that if you think this particular step needs the evaluator, please add it there. In your case, you can just change the Add evaluator to Just a prompt change, right? And just see just a single line of change. If you see here metadata label out one second. Yeah. If you just say critical equal to true, we just add the critic agent automatically. So all you have to say is that for all agents make critical to true. That's all. Okay.
+lakshmanarao vanimisetti: Got it.
+varun: So my question is what I asked my previous assignment if can I ask now?
+The Admin: Yeah, go ahead.
+varun: So what is happening is it's going through I ran it multiple times the same question. Sometime it goes through a loop for four iterations and it stops. But sometimes it goes to 12 iterations also and it doesn't stop. Try Gemini flash the smallest one.
+The Admin: I'm being used.
+varun: Is that the reason okay the first previous assignment there are A2 questions.
+The Admin: No, for no I still don't get Yeah. Which agent are you talking about which you use for that? what is going in the loop?
+varun: So I tried one or two questions multiple times those are getting stuck and the same agent which you can yeah decision I think decision is going I'm using the LM gateway I think.
+The Admin: You're not answering my question.
+The Admin: The format was we have a perception calling decision and then we have other stuff. So is decision going in loop or the planner or the Perception cannot go in loop then decision was not using Gemini in the code I provided. So again going back to you which ele was it using just make sure…
+varun: So it was someone else. okay.
+The Admin: if you're seeing that agent is getting make sure Gemini the best one or the GPD 4 GBTO Nvidia might go in loop it's a lower quality 70 billion I think yeah it's whenever I see something going in loop
+varun: I think it's Nvidia one. I will make sure. Thank you. Bye. Okay.
+The Admin: The first target should be that something is wrong. Either my context is too much for it to handle which means that the LM is weak. Both need to be fix or you can update the LM or you can make sure context is relevant.
+varun: In this page which you shared it you mentioned some steps there. It was said that the context might be truncated. I'm not sure. I saw that in Maybe do print the more logs or copy it somewhere in some file to see.
+The Admin: No, session two. You attended session two.
+02:50:00
+varun: Yes. Okay.
+The Admin: Then we had something called inspect.code.
+varun: Yeah. Yeah. I understood.
+The Admin: Yeah. Yeah. PDB or core. And you can just stop and Sundep.
+varun: Yeah. Understood. Okay.
+sandeep hegde: So in the last assignment right same I think previously had asked the search knowledge so it was emitting only 240 characters preview I think …
+sandeep hegde: but our chunk size was 400 plus or minus 80 right.
+The Admin: H. Correct.
+sandeep hegde: So in this case the decision is getting only 240 characters right apart from this decision was not having any info about the chunk that is in memory.json So, this was an intentional issue, right? We were supposed to fix it decision is calling search knowledge.
+The Admin: Chunk is for rag and the decision is I'm hoping looking at some HTML page or what is it looking at?
+sandeep hegde: So suppose we have ch already.
+sandeep hegde: So based on the ch so we have to retrieve some information right. So for that it is calling search knowledge.
+The Admin: Yeah. Yes.
+sandeep hegde: So search knowledge is returning the 240 character preview of the chunk right which is in memory dojson.
+The Admin: I need you to fix it. Correct.
+sandeep hegde: So we have to fix this. And also one more thing. So whenever on the same scenario I fixed it and I'm returning the entire chunk now with the search knowledge. But there is a method whenever a tool to tool call happens and the size of tool call is more than four 4 KB so it turns it into an artifact. So in suppose the decision is calling for three to four chunks and search knowledge is returning three to four chunks and this is getting converted into artifact.
+sandeep hegde: So that there will be one more lof right the perception has to attach this artifact…
+sandeep hegde: then only decision can synthesize some answer yeah yeah that's…
+The Admin: Not according to architecture.
+The Admin: Automatically the artifact ID gets attached by the perception.
+sandeep hegde: what I mean sorry not entire artifact ID will get attached and…
+The Admin: Correct.
+sandeep hegde: then these bytes go to decision and based on that by so decision will synthesize answer it's not like if decision calls search knowledge it gets the entire chunk can returns the answer that is not the way right.
+The Admin: possible. Correct.
+sandeep hegde: Okay. Yeah. Correct. So basically there were multiple intentional issues here and there. So we had to understand the architecture we had to fix and then we had to submit a okay.
+The Admin: There were no multiple issues for the eight queries I shared. The assignment was specifically add your own five and discover these things and fix it for your five queries. The code is not wrong for the eight queries I shared.
+sandeep hegde: So for us basically these eight queries were also failing.
+sandeep hegde: Yeah. Wait, that's okay. Okay.
+The Admin: You're changing few things and…
+The Admin: you're trying something else. Saga you were expected to use hybrid approach.
+Sagar Shete: Hey, sorry for the rest of them in the background. I was trying the assignment seven and I could see that the semantic search was failing for very obvious searches where keyword search would have worked better. Were we expected to use a hybrid approach or something else here?
+The Admin: The hybrid approach was provided. It was pro. We were doing a rack and some BM25 already.
+Sagar Shete: So use the fallback keyword approach is what you are saying.
+The Admin: Correct. Okay.
+Sagar Shete: Okay. Got it. Thanks.
+The Admin: I'm stopping the assignment recording, but I'm still here.
+Sagar Shete: No, I asked already
+The Admin: S. Okay.
+Meeting ended after 02:54:02 👋
+This editable transcript was computer generated and might contain errors. People can also change the text after it was created.

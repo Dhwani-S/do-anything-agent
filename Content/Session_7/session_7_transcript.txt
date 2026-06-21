@@ -1,0 +1,873 @@
+EAGV3 Session - 2026/05/23 10:45 IST - Transcript
+
+Transcript
+00:15:00
+Akanksha Chandra: 
+The Admin: Good morning everyone. If you can hear me, just say hello.
+Jatin Pahuja: Hello.
+Pragyan Prakash: Everyone.
+Pushpendra Sharma: And they all good
+The Admin: Hey, good morning. All here's me back again. And two people. And let us start recording also.
+The Admin: So today we have our session seven and last session was heavy. we covered some of the topics which you can see my screen. No. Okay.
+Shanmuga Suntharam: Good.
+Poornima T A: No phys.
+Pushpendra Sharma: Not good. Yes.
+Avinash Anad: Not it. Yeah.
+The Admin: You can perfect.
+Rajesh Joshi: Yes.
+The Admin: Okay, so we're going to start with our session seven today. last session was heavy. it was the first time we introduced you are supposed to write that architecture yourself so you get used to what we're doing because everything else is going to be built on top. And today we're going to be slightly extending it. We're not going to be massively changing what you learned last time because we need to tie in the architecture and the architecture is really solid.
+The Admin: There's a fundamental issue in that…
+The Admin: which will explore by the time sorry can everybody hear me?
+susovan paul: Are you saying something?
+Avinash Anad: Yeah.
+Rajat Subhra Ghosh: Yeah.
+Sneha C: strong.
+Shanmuga Suntharam: Yes.
+Sudip: He miss.
+susovan paul: Why I cannot?
+The Admin: Okay, perfect. So this as I said 9 or…
+susovan paul: Sorry. Probably might be an issue.
+The Admin: 10 you're going to see that in session 9 or…
+susovan paul: Okay, fine.
+The Admin: 10 you're going to see that there's a fundamental flaw that we need to fix but at a point where we see that particular flaw that's why we not just going to jump on on top of it.
+The Admin: Today's session is also fundamental from a very different aspect which is linked into how agent is supposed to work with documents that are internal to the user and sometimes actually things that you do not want to share with LLM but you still want to sort of share with some privacy issues. So those are some of the topics that we're going to touch today. it's not difficult. There's a lot of marketing and media hype around what we're going to learn. there are few advances that have come in. we're going to not touch them in Today's session is again a base up from where we left earlier but believe by the time we're done with what we're touching today. we will do all that is thought and LinkedIn and other stuff. So session seven is on memory and retrieval embedding files and index knowledge. We're going to go through these topics step by step.
+The Admin: And as I said in the comments also I was trying to figure out how do I take questions. So I've kept a screen open which tells me whether you have submitted assignment or not. If you're asking a question you have not submitted last assignment your question will be answered at the end of the session. So people who are actually submitting the assignment they get extra benefit of submitting the assignment. Hoping everyone is okay with that and it's a revenge from my end to you. So you can hate me after the session ends. Okay just one second. Yes. I'm zooming in for pandographies here.
+Pandurang Patil: Thanks.
+The Admin: So session seven left us with four main agents right you can say action is really not an agent or memory is really not an agent but you're going to see that soon it will also become an agent.
+00:20:00
+The Admin: we had four role bases and we have perception then we have decision then we have action and we have memory also which comes either at the first or the end actually to put the times right in decision 7 we're going to be adding a retrieval underneath that particular interface which means that what if some information is not with the LLM or it's not on the internet but you still want to know about it for example your secret affairs right hoping it's not there on internet but somewhere there in your chat messages
+The Admin: or what you did in Vegas when you went or Goa or Thailand for example all of those information is not there on internet right hopefully so in that case how do we still get LM to work with you or other queries where document is too private or maybe your lease agreement that you sign with right so those are kind of problems that we also want our LMS to or agents to work with so in the session six what the architecture that we made that is going to be preserved we're going to continue with that same architecture you're going to see that we do not have to change a lot in that architecture especially on the agent 6.py
+The Admin: pi file or agent loop. Everything else is going to be slightly upgraded. You're going to see certainly it has way more power that today is the first let's say the gem of that power or infinity stone that we're adding and that is rag. Now the two MCP tools that we're going to be adding one is going to be document injection. this is the first time we adding It was not then v1 or v2 in eag3 it's there. What it means is you can now ask an lm hey can you take this document and permanently index it right? It's a very beautiful scenario and it did came in v2 but architecture was not capable of handling it but this time we have added it.
+The Admin: So on the fly you can say remember this when you say that it's actually going to be in the rag always remembered as long as you don't delete your database but as long as database is there that information is going to be there and then we have vector search which was there earlier also the gateway is also earning a endpoint because possible that even the basic embedding model like nomic which I really like we'll see what nomic is you may not be able to run in that case you can go to gemini and get the embeddings from there so gateway is not going to be embedding as well. We'll discuss all of these words. Don't worry. change is modest, not a lot of change. So the session six and session 7 code remain same. It will be released at the end of the session. you have a finger. If you take that finger on the mouse and scroll at the end of the screen, you will find the video and on top of that there's a code, right? So that's where you'll find the code. Now rack also has lot of different I'll say flavors.
+The Admin: There are flavors, there is upgrades, there are updates and the new papers keep coming in. rag is not dead, this is a new kind of all of that is there. We're going to stick to the basic rack because it still works and still beats everyone In a specific scenario, for example, Ferrari is the fastest car on a perfectly flat road in Europe, not in Bangalore, So, we're talking about things that actually work first. After that, you can upgrade it and change it and do whatever you want. So hybrid retrieval with reciprocal rank fusion cross encoding ranking semantic chunking and graph aware retrieval the LinkedIn language is going to be there in session eight and nine.
+The Admin: So if you have these questions when we're going to be touching about them or talking about that right what we have added right now is the smallest possible vector science to understand what vectors are how do we use it how do we create a database all of your fancy terms like graph knowledge base or graph vector or al vector 11 dimensional string theory and all of that will wait for the future today is very very basic rag understanding now I presented
+The Admin: some of the content in the session in such a way that I was writing the code then something happened and then I had to fix it and that actually happened also but this is the third time I'm going through it and the same mistake I've captured again in the document flow as a note and as some stuff here also when you start writing your own agenting architecture you're going to see that decision failed at something the first intuition would be hey if perception was to directly tell decision what to do then decision will not fail I did that but then it was breaking the principle that there's a clear separation of concerns
+The Admin: Our perception is never going to know what exactly the skills later Perception will know of the It needs to know of the skills, right? I have an accountant. I have we'll say a CA and a CS. the skills it need to know. But exactly what inside it it doesn't need to know. So that will add later on. So you may be able to solve assignment if you move some of the stuff to perception right now. But it's going to break all the future assignments. So I did that whole assignment solved. The principle is broken. So you have to make sure the principle is not broken. There's a pure separation of concern. Right? Your cook is just a cook. Your driver is just a driver. Your CFO is just a CFO and so on. All relations should be maintained. And we see how do we figure it out and how do we identify that has happened and try and solve that. So where do we stand as of now? We had four named roles they were tied by the pyantic contract. Everything was handled by panticum.
+00:25:00
+The Admin: So there's sort of a beautiful data transfer which if breaks will be caught immediately. We're not going to spend time on figuring out whether LM is breaking or something else is breaking that the decision chose between answering and dispatching MCP2. The role remains a perception ran every iterating iteration and maintain the goal list. It could extend also you're going to see the code where it can actually extend. It was there in the S6 also but it was not part of the assignment direct per se. And we had long-term memory which can be saved. And then we had artifacts.
+The Admin: Artifact in the code you're actually and last time I lied to you and the reason was I wanted to make sure that you understand temporary versus permanent temporary and I kept it only for one iteration right you start a little again that artifact is gone but if you see the code artifact is preserved but it's still temporary it's not permanent right you can decide to delete it the reason artifacts are not immediately deleted is because of cache things for example what if you're talking about something and I have to visit the website again so
+The Admin: all the processing of the website going through crawl for AI cleaning stuff all of that has to happen again so that's why it's a part of a cache it's part of a temporary memory which you deleted but it's something that you actually don't carry so in the code you will see that it is maintained for some time but it's not persistent like memory and the whole system was wired through gateway which allows us to move around different gateways in fact now we have a new one hopefully it is running now it is going to be on 8107
+The Admin: The gateway is going to be called gateway 8 v9 to sync with the assignment of the session we are in so we don't get confused now this is running or it's refreshed okay so today I've not used it but yesterday I hit actually something like a gemini 78 queries on github exhausted all and it was beautifully managing from one to other gemini 3.1 flashlight is working for me I saw some comments that it's not but this is mine And this is not a paid account and we are nearing a rate limit. I understand but I have not touched the rate limit which is rate per minute 8. This was at the time I was checking. So maybe should keep an eye there. We had four targets four queries that were sent to the architecture and they solved it one by one. We saw that now session seven queries require something more. They will require a document to refer to and you will not be able to just do a keyword search.
+The Admin: Intentionally the documents are selected like that or queries are made such that you will not be able to just search through these documents and figure out something. So there are four very carefully chosen queries that are part of the whole thing and I'm going to take you through that but the solution is shared with you this time. It's not that you have to write the rag because lot is happening on rag and we'll see what that lot is but you need to build something on top that we'll discuss in the assignment part. So what do we add? There are four changes. Each one of them are local to the code that we are looking at. none is modifying the agent loop remains exactly that. Memory comes in. Query checks with the memory something is there or not. Then we send to Perception launches Decision decides what to do. Does it have an answer or it's going to launch a tool. If the tool then the action is going to be called actions results are going to be fed back to Perception and the same no changes no single line change in the loop at all.
+The Admin: What changes slightly is our prompt because now we need to update decision that it has two more tools in MCP. One is to index a document other to search a document. there's a change in the gateway because now we need to support also embedding a document and that's really all. second change is in the memory. each memory can also be converted into embedding and by default enabling that. So the search is really fast. So now if you were to have a memory of let's say one year the search is going to be in microsconds. So we are adding by that by default because in production systems you're going to see seeing that we really do really rely on the keyword search as the first thing. We first do emitting and then something else and then keyword search.
+The Admin: Fair enough all of these words fires and all don't worry I'm going to touch upon them. So two are added and we have eight queries to make sure there are eight different ways in which your code can fall or fail. So we are going to be seeing that. this is how Rag stands for retrieval augmented generation. I will retrieve something that is going to augment the generation of text as simple as it is. And that has told you the flow also. I'm not generating something which will be augmented by retrieval. That is also true. I'm not generated something that will later on be augmented by retrieval. That's false, So I'm going to be retrieving something which means that I'm going to find something and I'm going to augment it which means I'm going to help something or someone help what generation.
+00:30:00
+The Admin: So now when you ask a query to an LM which is a u auto reggressive model or just going to generate some it's generative AI let's use LinkedIn language when we using generative AI and when you ask it a question that requires something to have been retrieved earlier that part would have been done that's the track so what happens is moment you and this is a very dumb diagram you're not following this diagram but gives you some idea when you ask a question for example what was my score in seventh class right L&M won't know
+The Admin: hopefully when you ask such a question the query is going to be encoded here we are just showing a very simple encode encoding what is encoding we'll come to that but imagine that a query converts into some sort of a vector what is a ctor vector is a sequence of numbers that tries and determines the semantics of that particular statement all the document that I have they have already been indexed by the same model that is going to be encoding my query also because both of them have to have similar
+The Admin: You cannot have a Russian mantics on a German semantics on number of holidays in country because that will not meet Indian requirements where we need to have 140 holidays every year. Right? So we have to have Indian deciding what the statement means. So the same model is going to encode a Same model would have already encoded all the document that we have and then we have this emitting model. Right? So this is the index that we are showing for all the document that are there. The query is going to be encoded by the same model. And then there's the similarity search. This is where the fires is going to come in which searches that my query links reads similar to which of the document do I have. We're going to pick those top five 10 50 500 depending on your budget and money and boss. And then you're going to be taking all those documents.
+The Admin: Then you're going to be prompting the actual LM with the question what is my score in seventh class and it's going to put all the documents related to seventh class bad idea all the documents related to seventh class where the scores are mentioned better to the LM and LM is going to see what are my scores it's going to read my scores in seventh class was 78% and the response will come right so that is how exactly the whole rack system works now we're going to break it down into steps to understand how each one of them work and then we're going to understand rack properly So the first topic is embedding as a vector. general as you're aware of is a order auto reggressive model which means that if I ask how are you it is supposed to say doing but the same model can also be trained to and if you think about it how are you doing the doing sort of was generated because it captured the meaning of how are you right how are you question mark can also be there but how are you was already captured and that's how we were able to predict the next token.
+The Admin: So ding models are slightly different. Embedding models are going to take everything that is thrown at them. How are you doing today? Yesterday I saw you How are you doing today? Yesterday I saw you at the club where you were dancing naked. How are you doing today? And So every single statement that you can think of and as long as possible because there are embedding model that can encode a lot of text into a single vector. So doesn't matter you're saying hi how are you whole Gita or whole Bible or whole constitution of India sending every damn thing to the emitting model this will just result in one vector and that one vector is sort of an average of all the semantics that has happened now if I were to say hey but are you okay models are good enough to understand that it has no meaning it's just going to say are you okay and then embed that they are that good
+The Admin: that it's not going to for example I'm not sure you've seen or remember earlier cricket where Mohammed was there if you ask him how did you play he's going yeah we played very well and you that such got out earlier and so there's a lot of and if you remember right so many was good to throw that part away it's going to just remember got out came in and some of they want right so that part will be encoded properly but if there's lot of text you can understand it's going to be a mix of average of all the text that was there. So that will force us to understand or ask a question that each vector should represent how much of text should it be 1,000 words, bigger would mean that a document will have less number of total tokens. But that will also mean I've averaged out everything, right?
+The Admin: for example there's a US celebrity talking about I got married and then we got divorced and married to B and we got divorced because 10 times is just an average for actors there and by the time do end document embedding itself will be confused the average is I don't know what do I say is he married or not embedding itself will be very confused so we need to understand how much of text should we embed and we are going to discuss that also today but the point here is that embedding is sort of a vector that represents a text that is sent to the my favorite is Nomic model is very small and you can find it living peacefully on Olana. It's fast. It's small just 274 MB. Works really well. I've been using it for last 3 years now and I've never found a reason to migrate out of it or use something else. It's really good.
+00:35:00
+The Admin: There are other model that will perform much better than nomic no doubt but I felt that I have never needed it because the actual problem I think lives in the chunking part which is how do we decide how much of text needs to be sent to this model to give us one vector. when we look at embedding models you need to look at two things. First the model look you can look at it here again in bigger font. Once you're done with that, you need to look at another important thing that is not mentioned here. So if it is not mentioned here, we're going to find it on hugging face. That's the most important thing. So no make embedding 1.5 is also there. Blah blah blah. This is a bigger blah bl another blah.
+The Admin: this term matrioska we'll discuss but not in detail I just want to look at dimensionality okay yes this is important now MTV MTEB is a score how bigger the number the better it is so nomic embedding text v1 or v5 1.5 whichever you use sequence length 8192 number of tokens it can remember our words are converted in tokens so on average 81
+The Admin: 192 be very very safe. Just divide that by 1.3. So you can send 6,000 words to this model and will generate one number with 768 numbers inside it. That's a vector, a point in 3D is 3.5, 4.9, 6.8, right? So that's three numbers are three dimensions. So here we have 7 and 68 dimensions. So everything in that 6,000 words is going to be just one. But that doesn't mean you should send 6,000. That's a big number. And unless you have just want to document understanding the science document, chemistry document, Donald Trump document, Modi document then it's fine. But if you want to fine grain, if you want to insight in that case, you need to have a smaller chunk of 200, 400, 500, which we'll discuss in next session way more right. So 768 is the number which means that your index what is index?
+The Admin: index is a collection of all the emittings is going to be of 768. once you get married to nomic your query also has to go through nomic. Okay, we'll again discuss that part. your Gemini that I'm using in the code is giving us 4,000 something but it is a Matroska embedding which means that I can use the initial 768 also without worrying about the rest and that will also give me a good result. That's a very interesting kind of embedding. Basically it means that the embedding output can be 4K but you can use half of it also for comparison. It's not that bad. You do not have to rely on the next half to be The first half is also going to be good. So that's a metroka but again a future session we'll discuss it. So an embedding is a fixed length numerical vector that depends on the meaning of a piece of text. The vectors produced by neural network trained So there's a training that happens for that. The geometry of the space carries the semantic structure.
+The Admin: So carrying a semantic structure would mean that the embedding finally will know what exactly is there in the text that you're going through. a paragraph about photosynthesis and a paragraph about cricket are going to sit apart. When we compare the embeddings they're not going to be close to each other. The distinct matrix and there are many different ways of comparing these vectors. we are going to see the best one that works for us and just stick to it. we have cosine similarity which measures the angle between them. we have the internal measurements a lot of stuff that we don't need to understand right now. So we're going to be using Nomic which I'm using locally you can use Gemini which is on Google and from the alum gateway you can use that. There is a good amount of feed here for embedding. So you'll not probably get unless you're emitting your whole email or your whole life. Okay.
+The Admin: So the sim similarity tells us between the two vector how close they are right and our simplest way to understand the similarity is going to be imagine we have two vectors I'm going to show it to you other vector is here right the distance between them tells us how close those two vectors are the vector here so if you were to compare vector a and vector b and vector c what do we need to do we need to find the a vector a let's say is
+00:40:00
+The Admin: 2a 3. Then we define the dimensions of vector B looks more on less on y axis. So probably this is 3a 2. And then we have this vector c which is more on x-axis further. So maybe this is at 10 comma 1. Right? So now the moment you separate them from each other you'll know that is closer or not. That is exactly what we're doing but fancy cosine similarity. Right? L2 L3 LK L4 KL norm.
+The Admin: So you can invent new things about that and there are many fancy ways of comparing them but we're going to use a very simple fires emitting which internally is going to be using a specific one but what happens is how does alpha fold work let's say you have this as a sentence and that goes to the model is going to throw us some number right 768 number now there's another document or a sentence which says how do protein fold that will have a set of numbers then we have one more statement.
+The Admin: What is the capital of France? It will have one more dimension, 760 dimensions. Explain how work that will also have 768 dimension. when you compare the cosine similarity as I just did just a distance for Hello the person in the car,…
+Jasmeet A Singh: 18 and… above if you had No.
+Jasmeet A Singh: 
+The Admin: can you be on mute? Who's in the car? Good. People are taking the course from the car. Okay.
+The Admin: And you have explained this neural network learn that will also have a number. when you compare these you're going to see that how do protein fold is going to be very similar to how does alpha fold work. There's protein being used there. That's a benefit of this new network. Understand alpha fold was designed for proteins. It will automatically have that semantics. For example, if I ask you is cricket popular in India do you like Dhoni versus do you like Shah Rukh Khan? So the sentence one and sentence two are going to be much closer compared to do Shahukh Khan unless Khan also starts playing cricket. Right? So that's the idea here. again how do protein fold versus what is the capital of France versus explain how neural networks work.
+The Admin: new networks will be slightly closer to protein fold compared to what is the capital of France completely political and out right so that's the fact that we're leveraging okay now there are two kind of embeddings in session 7 we only going to focus on dense embedding so you're not allowed to even ask any question on sparse embedding but there are something called sparse emitting also in production you're going to be using dense sparse and something called secret so what I just explained is dense emitting. The whole statement or sentence goes inside the model and we just get one vector. Okay, sparse emittings are very interesting.
+The Admin: Sparse printing is like whatever I've been saying since the beginning of the session, it just says rag fires nomic session 7 LM gateway v3 documentation that is literally sparse waiting right you can understand what I'm trying to say summarize in two lines sometimes you ask your friends also right or when you're sitting with your friend or wife or someone who say So that thing that is sparse emitting how do I say everything I've said in the least amount of words that is dense emitting captures really strong meanings it has a full meaning and depth and emotion and tonality and dramatics and everything embedded in that. Sparse emitting is weak just words like do you love me? Yes. Simple it doesn't capture the word it captures the feeling.
+The Admin: The air feel atmosphere like that whole sense of the fear the few when and you actually feel that's dense emitting in sparse emitting words are actually there it's promotional you have some words scattered around vector size fixed right only one 768 dimension in sparse emitting very large you get a lot of words that are important right and you can think about why this is important also because you specifically ask what did in charger 1996 semi-final
+The Admin: that if your dense submitting will fail there because you have maybe a lot of documents about such and sha has a lot of matches 1996 also has a lot of matches it might get confused but if you use this and a document we're talking about shaza 1996 session sparse emitting we'll be able to get it slightly better compared to that so in the production you're going to see that we have to have a mix of one to three third one being 25 we're going to see what that means mostly zero no mostly yes because it just takes all the words and just figures out what are the words that are important. So all the other words that are not required they are just zero Good for rag. Yes. And this is As a hybrid. If you just use sparse embedding for rag, it will just fail. So you can use both. handle synonyms really really well. Right.
+00:45:00
+The Admin: You can say you can use the same word for example Bharat, India and Hindu and all of that you can use and it will still understand passing will fail handles weak codes and ids it will not like you if you are trying to find out your car number plate or other stuff using dense emitting and rag please don't it's not designed for that it's designed to get you not the facts but the grounding truth behind
+The Admin: Fact finding you'll need a sparse emitting which exactly figures out your car number is K A03 MK4988 somebody's car then example here is fires that we're going to be use mil search vectors are also there we're not going to touch upon them and largest search BM25 we'll use but we're going to go in sparse emitting more in detail list in the next session okay then we have this thing called BM25 and it really stands for best matching function number 25 I asked I want to know why it's called BM25 and this is a best matching function number 25.
+The Admin: people who are inventing they wrote a lot of function and they saw 25th one and they just said BM25 right not kidding and BM25 has been one of the most important search algorithms on internet for quite some time and there are a lot of other techniques that are similar to it but PM25 is really the key and what it does essentially is let's compare BM25 with vectors of embedding what we discussed earlier. So BM25 essentially is very similar to rse embedding. it is sparse embedding by the way one of the sparse embedding.
+The Admin: It will take a document and collect those words which are repeating a lot of times as well as which are very unique and it makes a collection of each document like that. when you search two documents one of them said Dhoni once and cricket nine times the other one said Dhoni nine times and cricket once and your query was Dhoni somehow it will actually get the second document higher preference compared to first one. So that's how intern it works. So search type is still word search synonym understanding is weak there is no synonym there it's literally word search handles exact terms exact so when you repeat your car number MK09 K09 MK 9288 it will find exactly that handles ID and code extremely well needs training no it's just just index it once and done good for technical document very good for technical document so you're going to see that finally you will have a combination of dense retrieval
+The Admin: and sparse retrieval and a reanker which we're going to touch in the next session. And the architecture is going to be something like this. You It query goes to the dense search. You're going to find some semantic matches and you have some text that you have to read. Then you'll do a sparse search. You're again going to find some documents which are going to be now keyword super specialist and things that actually talk about those terms. You're going to merge those results using a reancher. the thing that we discuss here which again next session and then you're going to take here also we mentioned reancher and we're going to take that and then send to the LM LM will have contextual documents we talk about a topic and factual documents that have those facts now it can read properly and then answer example what does est117 say about a false collision if you take that query and send it to a denm it will have no idea
+The Admin: ASMBB 1117 will have It's dense embedding models. They are capturing the meaning of the sentence not what is inside it. The dense search is going to find marine corision testing procedures. It will find a document talks about it but definitely no AMB117 whereas ASMB117 will come from the sparse embedding. So you take both of them and then attach and then send That's the thing and this was not done by the way in Egv1 and V2. So the pical rule you're going to be using the dense emitting then when the query is conceptual. Why do solar support corrode near the sea?
+The Admin: use sparse emitting when the query has exact term B estmmb117 HDZ Z2 75 FRP 6061 T6 these are the things and actually don't corrode in salty area and then you're going to use that hybrid stuff and then you give it to that that's the production one right but session 7 is only dense rack now before I move I'm going to take questions only from those who have submitted assignments so let's see F Sorry Rajes I have to take question but
+00:50:00
+padmanabh bosamia: Roan, hi I just wanted to understand when you have vector embeddings there are different kind of vector embeddings like pine con or people use different methods. So what is the difference between all those methods?
+padmanabh bosamia: Just wanted to understand just because
+The Admin: Just the model.
+The Admin: No, just Is it Google training the model or is it Nomic training the model or does Every company has their own model and they cannot be mixed. I mentioned in the content also very carefully that if you index half the stuff using noming and half the stuff using Gemini not going to work and…
+The Admin: it's no that's a vector storage part we going to be sticking to fires in today's session later on we'll move somewhere else different ways of storing and…
+padmanabh bosamia: storing data.
+padmanabh bosamia: I'm talking about storing it. Let's say vectors are stored in pine con. Okay.
+The Admin: finding
+The Admin: Page second.
+Pankaj Yadav: Yeah. A small question like the BM25 will it?
+The Admin: You're not punk, You have to wait…
+Pankaj Yadav: No. Okay.
+The Admin: till the end of the session unfortunately.
+varun: I submit you can check.
+The Admin: Thank you. Please. Yes. Go ahead.
+varun: Yeah. How does…
+The Admin: You are sir.
+varun: how does the memory in this session I mean the rags related to the previous session I mean perception…
+varun: where does it fit in?
+The Admin: We're not touched that your question needs to be only about rag covered…
+varun: Is it okay with respect to the rag you said that with some text we will convert into embedding.
+The Admin: till now that is so if I go here and if I scroll not here Yeah,…
+varun: So it's a very big text how do you separate the text I mean you send the entire thing okay sparse embedding can you give me more details I don't know about that okay…
+The Admin: we have not discussed about chunking also that is also so only stick to the question about the topic we have still discussed till now I said next session yes okay shand
+varun: then I will draw thank
+Avinash Anad: Yeah. hello Rohan. So this embeddings it is in alignment with that the basic NLP…
+Avinash Anad: what we do like clean stopwards tokenize map and then embed. So is it the same flow?
+The Admin: slightly more complicated…
+The Admin: but the whole document just goes to the embedding model and we get just one amending out but you're on the right track just a model more capable yes those are old way of doing the same
+Avinash Anad: Yeah. Okay. in the last scale what you meant word to vectors those libraries are there like that okay okay and one more question Ron with respect to the dense and sparse embeddings so we can say that sparse are like a subset of the dense embeddings like Yeah.
+The Admin: They're called embeddings but they're actually not even embedding the real words they're sitting around but yeah we saying BM25 here also right think of it like take this document and…
+Avinash Anad: During vectorization we used sparse okay Okay.
+The Admin: ask an LLM give me the keyword for this document
+The Admin: something that you use in SEO that's passing a old SEO company will mention everything 17 iPhone 17 Pro 64 GB RAM all that that we use in SEO that is passing exactly…
+Avinash Anad: Tag t tax kind of thing. Okay. Right sir.
+The Admin: what are the tags and important ones which allow us to find the document faster Deep combined one.
+Avinash Anad: 
+Avinash Anad: Okay. Thank you.
+sandeep hegde: You're on. So you said about three types of embeddings, So at the end you mentioned about the combined one, So that is the third one you mentioned or is it something else? yeah,…
+The Admin: Combine is mixing.
+sandeep hegde: hybrid one, right? Okay.
+The Admin: As I said, next session.
+sandeep hegde: No, no, no. My question is so you said about spars and…
+The Admin: Hybrid is dense plus sparse re there's nothing else reanker is ranking among these that we'll touch in the next session spar DM25 is sparse
+sandeep hegde: dense and also you said there is something secret, right? that is completely different or the hybrid itself is the secret There is something else also apart from these two. no actually my question was when you mentioned about embeddings you said about high tense embedding and also sparse embedding and also I don't know whether you said it jokingly or not but you also said there is something secret there is another secret embedding which you will use in production.
+00:55:00
+The Admin: No, that itself is BM25.
+sandeep hegde: Okay. Okay. Yeah.
+The Admin: Okay, Sep.
+Sudip: So Ron if we choose one embedding and encode our database you using that embedding. So it is very difficult to change an embedding later if you want to change right…
+Sudip: because your data is encoded and then user query has to encode using the same embedding. So is there some factory with which we have as architecture choice of changing these embedded some midway.
+The Admin: Once you get married to someone,…
+The Admin: you get married to someone. The only way is to restart. You have to get divorce. You have to reindex the whole life, your whole document and then the new embedding will work for you.
+Sudip: Focus against
+The Admin: So unfortunately yeah because the new embedding needs the query has to be embedded in the same Ibrahim.
+Sudip: Nothing.
+The Admin: I don't see your assignment submission.
+Ibrahim Khan: Hi. my question is that
+The Admin: I do not see your assignment submission. You have to wait till end session rule. yes.
+Jatin Pahuja: Sir if we are working upon any proprietary documents and making some agent which strategy we should use dense sparse or something like that local model should be used what should be preferred for Served.
+The Admin: So you have asked two questions. first is regarding some document that you do not want to be sent out and second is regarding the local model.
+The Admin: very secret local model but that also means you'll not be sending a document to outside Gemini or OpenAI so that model also has to be local only can you
+Jatin Pahuja: So some models give us the corporate subscriptions. So they consider that your data is not being used for processing. So is that we should rely upon for the proprietary data or we should use directly the local models
+The Admin: really depends on your client right if your client is not CBI or raw then you can rely on them that my Aadhaar card won't get leaked they will train on it they'll not talk about it but at least it will not let get leaked for some time so you are safe or till your job is there after that the next person can take a look at the problem but basically trust is that how much do you trust me for example with your kid only have that limited trust but if super secret you do not want things to go out then for example your IP or some code that your competitor can learn from definitely do not trust anyone of them. So is it a national level issue or…
+The Admin: is this a local company level issue? Secrecy also has their own levels, And one other question you asked is that …
+Jatin Pahuja: Okay.
+Jatin Pahuja: Thanks. Okay.
+The Admin: This is what we do in production. Dense and sparse and a reranker. Today We are not covering sparse or…
+The Admin: reranker in detail. Okay.
+Jatin Pahuja: No catch.
+The Admin: We have Manish.
+Manish Kapoor: Yeah. Hi Rohan, can you hear me now?
+The Admin: I can hear you.
+Manish Kapoor: So Rohan, my question to you is when to pass and when to use D. So I'm asking this question because when I'm reviewing my solution with my solution architects, they are very much into deep retrieval models. Even for a very simple chatbot kind of a solution everyone is like let's go to the deep models and try to
+The Admin: No, the short answer this is the only solution and…
+Manish Kapoor: Yeah. Yeah.
+The Admin: if you talk to them your debate or your argument is going to be that I understand you want to go deep but that is going to help us find semantic matches.
+The Admin: what do we do about a question like this your deep thing will fail so in that case you have to go with sparse so it has to be a mixture they are going to ask you that…
+Manish Kapoor: Okay.
+The Admin: how do I decide how much of deep and how much of sparse that's where the read is going to come in…
+The Admin: which is what we discuss in next session right because both of them are going to find results and we can't put all of them and then do a context blow read the whole read all 10 books no these are the important parts of it and that's what you should read so that will be covered We rank next vector source can change.
+Manish Kapoor: Okay.
+Manish Kapoor: Sure. Thank you.
+Vasanth Balamurugan: Yeah, so while I understand that the embedding model cannot be ported once we have generated the embedding and store it in a vector store, that could be ported to a different vector store, right? Okay,…
+The Admin: Vector source is like a container. You can put it in anywhere you want.
+Vasanth Balamurugan: got it.
+The Admin: Okay. And
+01:00:00
+Swapnil Gusani: the example which you just showed where there are words like a state and b17 right this can also be like an abbreviation inside the document and…
+The Admin: And we Okay.
+Swapnil Gusani: written in some other way. …
+The Admin: So that cannot be dealt with …
+Swapnil Gusani: how do you deal with those kinds of cases? No. No.
+The Admin: if there's a term and we have never for example do you know anyone I'm sure nobody will know. Do you know jijaha?
+Swapnil Gusani: What is it?
+The Admin: Do you remember ducttails? I mean I don't know So it was a literal translation from English to English to Hindi and…
+Swapnil Gusani: I understand. Yeah.
+The Admin: uncle school wanted something very immediately and in the English sentence was I want that ASAP literally translated into Hindi…
+The Admin: which mean because it was never said anywhere you'll not be able to find it. Element will also not The question goes back to you as a human. Can you find it in a set of documents? If yes, then probably can also.
+Swapnil Gusani: That's it.
+Swapnil Gusani: Then doain knowledge is required right in that case.
+The Admin: Of course, that's…
+Swapnil Gusani: All right. Okay.
+The Admin: where these are trained models to have a semantics which are linked to cricket, linked to science and linked to biology. And finally, we have one
+varun: So following up on the last question like ASM here he said that not like a semantic synonym. So it can have a full form that can also be in the model itself. Right? So can that be fetched using the tense embeddings?
+varun: 
+The Admin: I have no idea…
+The Admin: because very very contextual. If it's a new term where LM has never seen it, it may never. But if it is saying United Nations and then our query is then populate camp.
+varun: Okay, understood. Punch.
+The Admin: So depends on the trained corpus. So people who have not submitted it's not going to take a question but I'm going to take a question after the rack session ends. So the next topic is After that we have fires notes which I will take you through but I'll tell you I will not go in detail there. Then BM25 and practical and before chunking I'll take all the questions from all. So let's look at what s is. Now fires literally stands for Facebook AI embedding right.
+The Admin: So there the Facebook AI similarity search. It's a+ One of the fastest library I've ever seen. I've been using it since 2018. I think I may be wrong that I wrote the world's first fires for Airbus in 2017 2018 and later on people in 2022 23 are using this as a concept. But I've been using this for that long and I've used it not only for text but also for images. the problem statement that was given to us was here's an Indian company that works on the problems that Airbus has if there's a screw that is not manufactured to the precision can we still use that screw that problem comes from India you'll not believe when you are flying an aircraft there are something like 22,000 errors every big aircraft that some engineer has to certify and say that that error is okay to go with because otherwise the production just cannot finish because it's huge aircraft it's like building
+The Admin: It will be massive some mistakes will be there. Someone has to say this mistake is okay. It's not going to be life-threatening and it's a complex thing because they have a history of 60 years of French, German, Spanish, English and other documents and we have to somehow figure out write a search engine that can go inside and get that detail out and this is precisely what I use after the embeddings were done. So images were sent to resnet because again embeddings are something we can search on and if there's a defect which has an image and a new image comes in which has a similar defect and we send them to a reset which is vision model they are supposed to predict something but I don't predict I just take the embedding and if I cross refer embedding I'm going to get the similarity result so that is what we use there for text we use doc toe at that time and there after that when the embeddings are there we use fires extremely fast I've done 10 to 100 million document search within
+The Admin: 10 milliseconds to 100 millcond depending on the computer you have. 2017 computers were nowhere close to where we are today. So it's very very fast. So if someone comes to you and say no don't use this do use that vector embedding use that they're showing a dream where you have become a billionaire and your problems are as big as Walmart or Amazon where you have one trillion searches happening every week and then you have to solve something right do not buy Lamborghini till you can afford it or do not buy a Hummer in Bangalore till you can afford petrol diesel which is getting very expensive stick to our mar Swift perfect for this condition the budget that is super efficient. what it does is it's just an index. it doesn't create the embedding. It allows you to store the embedding and search through it in a fastest possible way.
+01:05:00
+The Admin: And I have not seen anything coming close to it for the package size, for the speed it provides and for the features it provide. There are modern variants of it. Sometimes we all hate Zuckerberg. Maybe that's the reason you want to use something else and assign your emotions. But stick to fast for the course or if you really want to go somewhere else then fair enough. No problem. Another brilliant part of it is that it is in memory. So it will stay in the memory. So it's fast because we're searching something which is in the memory itself, searching in the memory. When I say memory, I'm talking about RAM. So it's a memory based search. it uses something called index flat L2 which is take the indexes and calculate the L2 distance between them. L2 is A square minus - B2 square and square root of that fast and efficient. And there are some other things also which we can look at it which we can explore. For example, how many of the top you want?
+The Admin: If you want top five, top six, top one, top two, you can decide all of that. It's fast and it will just give you that result. So overall what happens is you have fires.right index which is going to be taking the embedding that you have got and it's going to write to position. It's going to get a path. And then you have fires read index which given the index. The JSON load is going to load everything. Right? Then these are the things that we're going to be showing the memory. But what we have in our code is fires the right index. So we take a index and write it and then we have a binary saved into the disk that keeps on becoming our index. What am I saying? There's a memory that need to be indexed goes to nomic becomes that embedding now goes to fires and to fires we say ex it writes to index then whole index is stored as a bin file on our drive.
+The Admin: when you just ask fires search this or read index or something similar it will just find out top five and give it to you extremely fast full search engine literally right and we have two things we'll have indexf fires which is the whole fires index and then we'll have index id so index of fires is the index stored in the fires right but we'll not get that address we can't store that itself in the memory in the memory we're going to
+The Admin: is storing the index id again very similar a key value stored in fires key I have so now when you search a memory the key is going to be used to search immediately inside the fires and we're going to get the result so that's the memory class update that we have done compared to the one last session now fires is a similarity index it is not a query language it is not a metadata filter it has no layer it has no transaction model it is not responsible for anything apart from giving you the closest search indexes, right? And that's all. Fire supports compression. It supports shared indexes. It supports GPU indexes. So, you can run it faster if you have GPU also. But that's where it stops. here are some self-arning notes, which means that for any question that you have in this, I expect you to go to charge GP to get more details about it. I'm just going to touch upon these topic at once. P stands for Zuckerberg AI similarity search.
+The Admin: It is a library for doing extremely fast vector similarity search in rack. FS is commonly used to store and search and embedings. If you go on LinkedIn, you're going to find many beautiful different promoted way of vector database and blah blah blah. But fire is use it. Simple meaning if you convert text into an embedding for example FRP support for solar panels, it's going to give you one single number coming from Nomic or corision mounting structure. It's going to come back with some number. Fires is going to help you quickly find something like which store vector are closest to the query vector. That's all it does, right? So when a user asks what material should I find for solar panel supports in salty areas, that thing now goes to nomic. Nomi gives you an embedding 768 numbers. Those 76 numbers are sent to fires and we ask fires, hey, do you have any other vector which is similar to this? It finds those vectors and returns. That's all it does.
+The Admin: So where fire sits in the whole rack thing we have a document we have to split them into chunk chunking we are going to discuss in next session we're going to create embedding for each of the chunk again if you have any confusion on chunk think of it like this your document has 5,000 words you can't send all of those 5,000 to embedding model not because it can't handle it but if you send it and you're going to get one 760 number describing the whole thing right it's like your girlfriend or your boyfriend or your wife or your daughter or The sons don't ask this kind of question but asking you what do you feel about me? You come tired from home and sitting and the whole day was messy. Your boss was angry the car broke down and then there's water and the traffic and you come home. Hey, what do you think about relationship our relationship? And then you have to I feel good.
+The Admin: You have to take 15 minutes, go into the depth of your heart, take the best of the words out, and then explain properly. You cannot compress a 6,000word explanation into do you love me? Yes. No. You're expected to explain properly, You have to chunk your stuff and then express step by step. That's the problem in chunking the whole document into just single a few words. So document is split into chunks. Those chunks now go into the nomic and we get Now those embeddings are now saved in fire So after nomic is done, we send it to fires to save it. User query is also sent to the same model. As I said once you're married to a model, you're married to the model. So not only the documents chunk will go to the same model. Your query also has to go to You go to the same model and then you get a query query converted into embedding.
+01:10:00
+The Admin: That emitting is also sent to fires and we ask fires, can you search and give me the top five, 10, 20, 200 depending on the budget you have. It retrieves the top matching Those chunks which are not text is sent to LM and the LM is going to decide your seventh class scores were 78%. And then we have final answer. So fires is the vector search engine part in the whole scheme of lag very fast very small. What does it store? It stores the chunks in the index. That' All the chunks that you have, it's just going to store it. But usually you search using metadata also not covered in today's session. very important. This is the production thing that we have to take care of later on. Chunk ID. Which document is chunk is coming from. For example, if you chunked a particular sentence which said I don't love you.
+The Admin: In fact I find you very irritating and that chunk was next to description of somebody you really love they are not going to be happy. So when we chunk we need to know what part of the document it was coming from right. So we have to store that in the document what is the ID number two ID because we need to know the sequence also right you got married first then you had kids then they went to school not that there was kids going to school then you got them and then they got married that that's not a great idea so we have to maintain the chunk ID so we can sequence the story then we have to store the name of the document which document it is coming from then you have to store the page number because sometimes you want to highlight
+The Admin: that page very important right you search something and then ask your agent I want to see the page where this is coming from I don't believe you and you have to show the page you can't show the last page you have to go to that page number 48 and say I'm telling you it's coming from here then the original text you have to show the original text right you can't say that page 47 go look your agent can't be sloppy and then the source where is it stored if it is a document on a drive or it is a URL specific on So fires itself maintains the whole vectors search part and you can actually store these metadata along with each chunk in the fires and basically gives all. So it becomes one really really good central system for us. What is it It's really good at when you have 10,000 chunks or 1 million or 100 million. Moment you have a billion chunks to chunk you have chunked your chunking career.
+The Admin: So you are really thank and you can move to the more expensive extreme solutions where you have money to spend. Now instead of comparing the query vector for each vector store fires is going to be optimizing the index methods and everything is taken care of. So similarity search fires can use L2 distance. It can use inner products. It can use cosine similarity. It can and has different index flat L2 is what we're going to be using. fastest and best one. Then we have another class of storing the index. You can look at all of these later on when you have time. Now comparing fires with BM25. BM25 is a keyword text search.
+The Admin: Fires is the embedding search right you need to know this basic difference and after that you're free now it is going to capture those meaning so if the embeddings match you're going to get a similar embedding so that means the meaning is getting matched but exact words and all very weak because it cannot store those needs embedding model yes it does good for synonyms yes really does really well good for codes and ID risky as I said embeddings do
+The Admin: not contain the car number or the metal ID for example salt damage near C really good keyword search BM25 ASMBB117 Z25 and SDG really good so your fire based rag or how your rag finder will look like some dense embedding search method I'm recommending fires plus BM25 sparse this search and the reanker again next session a very simple Fires example import files and it's im That's all. See how simple life is. Just say import files and Nothing needs to be done. Index is Search Everything ready, right? In fact, you could check your ATM will have more money also. Import numpy np. You have to import dimension 368 just for test. We're going to be using 768. create embeddings for random things. Then send it to fires. tell it to index.
+01:15:00
+The Admin: store that index into index flat L2. Add embedding to the index and then create a send it to index dot search give me the top five and we'll just show you top five if it has top five otherwise 1 2 3 or whatever is there right and ID is going to be so the practical model for you ding model is going to create embedding for the chunks of the documents those need to be stored and then searched from fast is going to be helping you do that part okay now before I go for chunking for retrieval actually let me
+The Admin: cover chunking for retrieval and then take question because it's important that this is also covered properly. I've already covered it. Now the emitting model is going to create one vector per text that you're sending If you're sending a 4,000word email, it will miss all the details. You'll just average it, right? It's like after listening looking at the whole movie and someone ask you how's the movie? Yeah, it was good. People are going to get that kind of answer. But you want detail answer the memory has to be about precise moments into the memory. I liked it. The actor he said something like that and so on and so a proper description, right? So, just remember this line and you'll be good to go. A book or a oneline definition sent to a embedding model still gives you 768 floatingoint numbers.
+The Admin: problem in creating very small chunks is that you'll have very very large number of independent embeddings and maybe you have divided them in such a way that you should not have right because a sentence captures the immediate context a paragraph captures surrounding context book captures the whole context you have to be very smart in how do we chunk not a simple problem a lot of research just goes inside chunking part the longer the input the most semanticing context get averaged into a single vector this problem also. So the longer you make your chunk more average is going to be created and we'll have trouble. The standard remedy is In today's session we have done the dumbest possible chunking which was the first chunking also used which is take the document take the first 400 words and chunk it. The worst possible method on earth. They may be worseer than this but I'm calling this worse because I don't know I've cut it between the sentence or I've not even taken care of that. Right.
+The Admin: It's like Katabishna Mara was there in the last 2 minutes and Rajamuri just cut that and you don't know what happened to Katapa. That's the kind of chunking we have done right and I went with my friends I was driving in the car and there was a truck coming in front of me and then that's the chunking we have done right now. So bad chunking the answer to this chunking is in the next embedding. So unfortunately now when we send to the model what happened to that car we have to send the chunk someone has to understand that we have to send the junk also. So it's a complex problem not easy. In our case we have done a 400word chunking with a Simple solution of this is that we have a 80word overlap. So it's 400 with the 80 word over overlapped with the next one. So this 400 is there.
+The Admin: It's like you're watching a movie, a break comes in and then the movie starts from one minute behind and then starts again to give you some context right between the adh you should not forget what happened. In that scene, a person might get slapped twice. He got slapped ad came in and then again the movie started one minute back. So he's going to get slapped again. That's one way of solving this problem. But there are much better methods than this. So these defaults are conservative and heristics. smaller chunks improve precision, larger chunks preserve context. The right value depends on the corus inquiry. if you are working with Donald Trump transcript, then your chunk size has to be really small 40 words will cover attack on Iran, right?
+The Admin: and 100 words will cover the whole economic policy of America. If you're using Shashitu, then 4,000 words will capture that he arrived in So it really depends on the context and which corpus you're working with. So the honest limitation here is a chunker does not understand a semantic boundary. Now we invented something in V2 and we call it a semantic chunker where we are going to go in more detail in session 8. But there is a solution to solve something like this. Now we can start with all the questions and all the people who have not submitted assignments can also ask the questions. So the people who have submitted assignments can take a break and go and come back also. Ibrahim Khan.
+01:20:00
+Ibrahim Khan: Few questions.
+The Admin: Yes. Yes.
+Ibrahim Khan: One is that the dimension of the embedding vector the nomad one I think has 768 text embedding ADA has 1568. so does increasing the embedding dimensions help and…
+The Admin: 100%.
+Ibrahim Khan: to what sorry but then to what extent do we limit it and say that we're done with this dimension and we're okay with it or
+The Admin: I'm saying 768 is good enough for me. but there are people who going to say no, I want slightly more. There is no limit to There's no end to Something like that. 78 really works for me. And what you will see also is that they're going to go with Google and then they're going to say we have in invented metroska embedding where the first 768 also gets you similar result but if you use full embedding of 4K or 8K you get slightly better result. So I've not seen that slightly better result actually giving a earth and night day kind of difference. So 760 is really good.
+The Admin: If your chunking strategy is good, chunking strategy is bad.
+The Admin: You want to embed big documents, go with a big embedded SEO.
+Ibrahim Khan: Okay.
+Ibrahim Khan: So I mean this sparse embedding you said that's not like a vector. Is it like a control F search like a regx search something? Okay.
+The Admin: That's the best example I can Take your whole text, give it to charge and ask it that hey, give me the SEO for this. Because what is SEO? when I'm searching for a specific motor or a specific product, I need to know the product ID, 64GB, all the important things are there to help me get to the search engine. So SEO is a very very close BM25 is something like that something like that…
+Ibrahim Khan: Is it like a TF ID of something where also the choice of the vector DB FS versus Chrome or…
+The Admin: but it's slightly smarter. It gives different weightage for more repeating words compared to less repeating words but PF is closer. Yes.
+Ibrahim Khan: anything does it depend upon what kind of domain you have or what kind of embeddings you want to input into it? does that choice also matter?
+The Admin: no it's a ease or…
+The Admin: how lazy are you like if you're not lazy and you want to burn your hands and see what is happening on the ground go with fires if you're saying I do not care about anything and…
+Ibrahim Khan: But what is dep
+The Admin: I want everything to be taken care for me grow with chroma or something so how much you want to go into the depth is going to be the determining factor.
+The Admin: to take care of the installation on AWS, When you do, you have to make sure that the index is backed up. Index is when it becomes bigger, it automatically fragment itself. All of those things you don't have to worry about when you're using Chrome.
+Ibrahim Khan: So I think my subsidiary question is the same thing I think you said key we can keep the files in a bin as file in a repo or something but then what is the production setup does that live into your code base or…
+Ibrahim Khan: does it goes in a cloud or something or…
+The Admin: you have 100 million users or…
+The Admin: 1 billion users is going to be determining factor. As long as you have a million user 10 million user files is perfect. You'll not have to worry about moment you go beyond that then probably latency is never going to be in the picture.
+Ibrahim Khan: Yeah. So depends upon how much cores or service has been put up and then you decide key latency and all I think these fine.
+The Admin: Whether you're using fires, nobody can beat it. There are other algorithm which claim that we are 10 times faster than fires. But those are very subjective tests like we are 10 times faster in getting in the car. Those are the kind tests people can perform, right? How fast can you get into a Ferrari compared to Maros shift is going to beat the hell out of it.
+Ibrahim Khan: But then 1 million and…
+The Admin: Okay.
+Ibrahim Khan: 10 1 billion is a lot of queries. And if …
+The Admin: If that helps you, Facebook and Instagram is built on fires. So that's how production it is.
+Ibrahim Khan: but then where does this DB reside does it in the code?
+The Admin: So go search. I just mentioned that deeper questions you'll need to and Stick to the course.
+Ibrahim Khan: Cool. Thank you. Thanks.
+The Admin: Thank you.
+The Admin: So someone second you're getting the vector ID and…
+susovan paul: whenever we are getting a response from fires.
+susovan paul: So that is also a vector. So how we are decoding that to a original text.
+The Admin: the vector ID is going to be giving you the chunk fires files is going to give you the vector ID you're going to take ID and…
+susovan paul: From…
+The Admin: get the text…
+susovan paul: where I will get the text touch.
+The Admin: where it's stored you've already made the index has nothing you're going to see in the code.
+susovan paul: I understand. So from that index it will be getting. But is this automatic? I mean do I need to fire another code to get that?
+The Admin: It's there in the index that we have maintained.
+01:25:00
+susovan paul: In your code you have shown that you are getting the response. So the response automatically will give me the original text. That's what you are saying in the code you have shown.
+The Admin: It's going to give you the clear index ID of heading.
+susovan paul: H okay so right so for that we need to do something that's…
+The Admin: You need to take the index ID and go to your actual text database and you're going to fetch the chunk from there.
+susovan paul: what I'm asking okay so that is not given in your code right so that is written okay okay fine thank
+The Admin: Yes, you have to do a directory search which is nanocond fast that I'm sharing with you. was there they don't need a vector database.
+Vasanth Balamurugan: Yeah, Roen. So, does the sparse embeddings also need to be stored in a dedicated vector store or could there be any simplified way in which we can store it?
+The Admin: They just need a simple database.
+The Admin: is very fast.
+Vasanth Balamurugan: 
+Vasanth Balamurugan: Okay, got it. And the next part is while we convert these documents into embeddings, is there a way and then we index it when the document gets refreshed or if there is some change in the document, do we need to reindex it or what could be the process?
+The Admin: Yeah, we need to reex we need to re So someone is asking Chrome and all right. So those are the features then you'll have to think in fires bring them back or add yourself. What we do is we maintain the SHA key for a chunk.
+Vasanth Balamurugan: Got it.
+The Admin: If the SSA key changes, we just index that again and swap that index.
+Vasanth Balamurugan: Got it. Thanks.
+The Admin: Okay, good.
+Deepak H: Yeah. Yeah.
+The Admin: Yes, I can hear you. Yeah.
+Deepak H: So my question is you see nomic returns a embedding of 768 dimension. Now when I send this embedding to f it's going to find the similar vector.
+Deepak H: This 768 dimension is fixed from the nomic side. So phase how does it take care of that?
+The Admin: No fire is just an index.
+The Admin: Index you made of 768 for old one and a new one. It just searches between them.
+Deepak H: 
+Deepak H: Where is the index getting created? Domic is just returning me a vector of 768.
+The Admin: Fire getting index. Every document that we chuned is sent to the files. Step number one, document. Step number two, chunk. Number three, create embeddings. many S embings are sent to fires to store the embeddings. So it is stored. Now you send a query, same size of embedding,…
+Deepak H: Okay. Okay. Thanks.
+The Admin: search the fires come back with ids you go to another database where the actual text is there. You fetch that. Okay.
+The Admin: running. We just discussed that we have a 80word overlap.
+Ashwani Bindroo: Ron, I have two questions. number one, let's take an example. I have a proprietary document and I want to do chunking. So, the question is that does the chunking happen sequentially or it randomly creates the chunks?
+The Admin: So has to have sequentially Please repeat.
+Ashwani Bindroo: Question two for technical documents would p indexing be more pragmatic to use instead of chunking where these technical documents are properly indexed section 1.1 and so on and so forth. So for technical documents would this page indexing be more pragmatic to use instead of chunks or…
+The Admin: Yeah, I just explained this is the worst possible method of indexing. We have to figure out a better method of indexing or chunking. which I want to be part of the next session.
+The Admin: But you to bring this up and this is not the right way.
+Ashwani Bindroo: All right.
+Ashwani Bindroo: All right. Thank you.
+The Admin: Okay. Nan
+Naman Bhardwaj: So on this BM25 this comes in picture not during chunking it is like while reading do queries and…
+Naman Bhardwaj: getting those unreadings user query.
+The Admin: That's correct.
+The Admin: That's correct. may not be linked together completely up to how you want it. But generally it's a document based BM25 or a page based not a chunk based.
+Naman Bhardwaj: So I can't use the same thing for chunking…
+The Admin: What do we mean by same thing for chunking? What is the question?
+Naman Bhardwaj: because we can get keywords out of it right this is keyword text search kind of looking for BM2 so I'm saying…
+The Admin: What is the question?
+Naman Bhardwaj: 
+Naman Bhardwaj: why can't we use BM25 for chunking So,…
+The Admin: BM25 gives you important words in the document. I need a paragraph.
+The Admin: I need the document to be split into eight pieces. BM25 gives you 40 words for a document. How do I use that?
+Naman Bhardwaj: do you need Some dense Thank you.
+The Admin: The bad strategy that we picked is 400 words with 80 word lap. In today's next session we're going to discuss how do we make it What do you mean the code as well?
+01:30:00
+Pandurang Patil: I have two questions. One question is you mentioned sparse search I understand if it is an ID I understand that concept but then how it is applicable for the code as well can you explain that okay it's not program code okay okay second question was with respect to the hybrid search that you pointed out.
+The Admin: The code was a code 748 as something like that.
+Pandurang Patil: So you will do a 10 search first and then whatever results that we get we will do separately.
+The Admin: Not all of it separately.
+Pandurang Patil: So if we have to use hybrid then we going to index it same document two times for sparse search and for is that okay?
+The Admin: That's correct. They happen in parallel. So free and…
+Pandurang Patil: Okay. Six.
+The Admin: sparse is faster. He's angry. Muhammad.
+Mohammad Anvar: Hey my question is really difference between I am in a rocking chair…
+The Admin: I don't know chair the voice becomes louder and then please come to close to the mic and…
+Mohammad Anvar: but not talking there.
+The Admin: then speak.
+Mohammad Anvar: All are we talking about two databases where we have one for somebody and one for somebody else?
+The Admin: I'm hearing are we talking about the fact that we have one foot on one boat and…
+The Admin: one foot on another maybe use a bass voice that is coming clearer louder.
+Mohammad Anvar: No, I'm really close to the wrap up.
+Mohammad Anvar: I don't know what's happening. maybe How about All can you hear me right now?
+The Admin: Yes. Yes.
+Mohammad Anvar: Or maybe I'll speak louder.
+Avinash Anad: Yeah.
+Mohammad Anvar: My question is do we have two different databases?
+Mohammad Anvar: for the SP entering and 140 strings where we query one after the other.
+The Admin: Yes. Yes.
+The Admin: I think I got your question. we have two databases. One is for the dense which is infires and the other is the simple for the BM25 the sparse one. Yes, we maintain them separately.
+Mohammad Anvar: So the second question would be I understand that for the database maybe the size is kind of larger where it captures more context whereas for the spas database the property is smaller. So if I create a smaller text and…
+Mohammad Anvar: store I mean use that for my dunking. Will that automatically be a sparse service?
+The Admin: No, the problem is we do not know the length of and…
+The Admin: that is why we need to be in the next session to discuss about it. I do not know whether the paragraph should be short or long. Look at this example itself here. We have these many words. But if I look at the first paragraph, it's a big huge paragraph, right? which talks about for example here where does the core stand probably all of these should be chunked together because they're just talking about what happened last time so we do not know the boundary and we need a very smart intelligent way of creating this boundary and…
+The Admin: that is exactly what we invented in V2 which we're going to see in the next session so answer is not how big answer is when does the context switch and we do not have a deterministic answer for that it's semantic and that's why some LLM has to come and help
+Mohammad Anvar: Okay, great.
+Mohammad Anvar: And coming to the search files, searching for the act embeddings. So it does it act on any kind of embeddings we have.
+Mohammad Anvar: We have discussed about creating a 7 dimensional for example So the index ID that we return is returning B and…
+The Admin: Yes, it doesn't matter the fires.
+The Admin: It just looks at all the embeddings and just takes the embedding and just searches through it. It doesn't care it is coming from which problem is. Nomic embeddings are going to be close to the nomic embeddings which were creating earlier. It will not be able to search through the Gemini embeddings. But you can have a database where you have mixed nomic and mixed gemini and you use mixed nomic and mixed gemini queries and fires will work. Fire files doesn't care about that is correct.
+Mohammad Anvar: constant to figure out whether that is coming from A or B or…
+The Admin: But we never mix any two models for the embedding to only one embedding model.
+Mohammad Anvar: okay so looks like we are dealing with three databases here. This is a mapping of a ID to a text and ID to embedding and then starts embeddings. Is that right?
+01:35:00
+The Admin: That is correct.
+Mohammad Anvar: All right. Thank you.
+The Admin: Sep didn't go. Sep. Okay.
+Mohammad Anvar: Any rare mantis?
+The Admin: I can't hear. Sep. Naz. Yeah. Correct.
+Nawaz Ali: Hey, can you hear me?
+Nawaz Ali: Couple of questions. So, we started the course with injection, So, injection is nothing but chunking and then embedding. Is that injection?
+The Admin: But we have not spoken about that yet. Injection into the agentic loop that has not happened yet. We're just talking about rag as of now.
+Nawaz Ali: 
+Nawaz Ali: Got it. you also talked about the image…
+Nawaz Ali: where you have u embedded it and you said that you used visual model. So in today's world do we still use that or is there a way…
+The Admin: We have modern models like Gemini…
+Nawaz Ali: where you can come okay so the actual content of that image will be okay another question is when the fires will be searching right we said that it returns the top five searches now these searches Sorry.
+The Admin: where the same model can embed image 50 or 50 depends on RK.
+Nawaz Ali: When you say RK, what does that mean?
+The Admin: You said five or 50 one or three. Yeah.
+Nawaz Ali: So why does budget have to do because anyways it's the cosine similarity and all is what it uses to find out which Can you look at that one second?
+The Admin: if I set it to 50 then I have set 50 into 400 word chunks. So 20,000 characters I'm about to send to LRM. That's where the budget comes in. We get five from fires. I pass it on to LM. So I'm sending 2,000 words. I select 50 from fires.
+Nawaz Ali: Okay.
+The Admin: I'm sending 20,000 words. So now it depends on and these are words which are not tokens, into 1.3. So I'm sending 26,000 token context to LM budget.
+Nawaz Ali: Got Makes sense. last question is so the 400 tokens is…
+The Admin: Okay. Yeah, correct.
+Nawaz Ali: what we are sending it and then we are getting one embedding and our question probably can be like five tokens even that is converted into same number like 768 embeddings. How does it search? how does it know exactly that?
+Nawaz Ali: Yeah, this is the chunk where in everything has been averaged out.
+The Admin: Chunk…
+The Admin: what is the Embedding is a semantic meaning of a particular stuff that is sent. Right? Tell me about et us talks about cricket versus document that talks about protein folding will have different semantics. So when you search the cricket will match. That is why it's not a keyword based match. It's a semantic. It's a meaning based match.
+The Admin: Does it talk about the same thing? Yeah. Yeah.
+Nawaz Ali: makes. And when you say averaging it,…
+Nawaz Ali: what does it mean? in one of your slides.
+The Admin: Because let's say if I send 4,000 tokens to the embedding model versus 40 in 4,000, it has to save all the 4,000 words compared to 400. So the meaning of every word is getting diluted because I've adding more context.
+Nawaz Ali: So, in simplistic words can I assume that it summarizes the 4,000 words into few dimensions and…
+Nawaz Ali: then saves it into sense.
+The Admin: Yes, but the summarization becomes weaker and…
+The Admin: weaker as the number of words become larger and larger because same 768 word need to be used for same 768 numbers need to be used for summarizing now.
+Nawaz Ali: Thank you so much.
+The Admin: Okay. Tony. No.
+tony james: Hi, is there any mal a ratio for chunk size divided by vector? Okay. And sorry.
+The Admin: Unfortunately, no. And it is because of Donald Trump and Shashar. It has to happen at the both thing,…
+tony james: Got it. And yeah, second thing is the question is how does the overlap happens? It happens at the beginning of each chunk or at the both sides of the chunk.
+The Admin: Unless it is at the end of the first chunk, it cannot be at the beginning of the next chunk.
+tony james: Okay.
+The Admin: So there will always two chunk that shares a bond itward bond.
+tony james: It will maybe 40 in the case between beginning and end.
+The Admin: No. Okay.
+The Admin: So, let's take this document. Let's say we were chunking it.
+01:40:00
+The Admin: There is nothing to share this with.
+tony james: Okay.
+The Admin: Let's say it ends here. So, last 80 words till here is going to be part of the next unk This chunk. And from here 80 to whatever comes here, And from here, let's say this was then here right and then from here to here…
+tony james: Yeah. here.
+The Admin: but I'm cutting in between and that is literally what will be happening then also this is 400 and then from here to here and…
+tony james: Okay.
+The Admin: here to actually let me be bad about it here that's problem in saying 80 and 80 and 400 we don't know where the sentence is ending we are not smart being smart about it topic next session
+The Admin: Anybody? Yes.
+tony james: Any embedding model can be used with the phase, Not linked to any. Okay. Thank you.
+The Admin: Okay.
+Ankit Biswas: So Ro saying that while doing the search retrieval search we should use we will use the hybrid search where one will be semantic search and other will be keyword search right the semantic search will so my question is even while embedding the actual set of documents our knowledge that time also we have to embed using both the embedding models.
+The Admin: Yes. All right.
+Ankit Biswas: So when we are retrieving the dense should hit the dense and the keyword should hit the keyword the two separate models and they converge converge to one variable or…
+Ankit Biswas: whatever. Yeah.
+The Admin: not convert to one variable.
+The Admin: So let's say dense gives us five chunks and retrieval gives us two documents. The reanker has to decide finally that what is it I'm going to send to.
+Ankit Biswas: 
+Ankit Biswas: Got it.
+The Admin: Yes. Yes.
+Ankit Biswas: 
+Ankit Biswas: Got it. So we have two separate embedding space and…
+The Admin: Embedding correct one is embedding other is word based.
+Ankit Biswas: we have to hit them separately.
+The Admin: Yes. Pass is word based.
+Ankit Biswas: Word paste is DM25 right?
+The Admin: It is pass retrieval.
+Ankit Biswas: So my question is so let's say if my dense embedding model I have given it a document like that has my details Ankit P works here and here he was born here and…
+The Admin: Dense cannot capture.
+Ankit Biswas: there are you telling me okay okay are you telling me…
+The Admin: Dense cannot capture it. Dense does not know It just knows the meaning of philosophical, photosynthesis, chemical reaction.
+The Admin: It has no understanding of Donald Trump or it cannot embed that into an emitting.
+Ankit Biswas: if I do that and then invite that query I write where does Ankit biswas work it won't be able to tell me okay…
+The Admin: Not at all. It will fail.
+Ankit Biswas: what are the us BM25 is for the keyword word thing yeah…
+The Admin: It is for business. Yes.
+Ankit Biswas: so BM25 is for sparse vectors for dense vector…
+Ankit Biswas: what are the usual models okay…
+The Admin: No make is a usual model.
+The Admin: Gemini is a usual model philosophical hypothetical.
+Ankit Biswas: 
+Ankit Biswas: because I have sort of used some hugging face models for embeddings where I have passed this kind of this documents and then I have asked questions relevant to that document using names or something like that and I have seen that it has been able to return me okay okay that could be possible maybe I do not know that I have also used OpenI embedding is that also hybrid.
+The Admin: It will not work. You can try it out. Maybe what you were using was already Any people complain that these Q&A are long question directly.
+Ankit Biswas: Sorry. Yeah. Yeah,…
+The Admin: No pros. Okay.
+Ankit Biswas: 
+Ankit Biswas: that's all I guess. Enter.
+The Admin: So yeah flat index one second the cosine is similarity search okay…
+Soham Harshe: hi Rowan you mentioned that PIS is using L2 metric for calculating the similarity…
+Soham Harshe: but widely cosine similarity is used right so if you're using FS then do we need a model that is. Okay.
+The Admin: what we discussed L2 was how the index is stored internally slightly different things if I said I want you to read that thing with JPD and others. So talk to JPD Gemini CL etc about fires and learn more about the section below. So all of these question I want you to after the session sit with JP and understand many of you will not have questions on this.
+Soham Harshe: Okay. I have one more question. as we said that the name search cannot work well with the embedding dense search.
+The Admin: Yes. Yes.
+Soham Harshe: What if the model is trained for named search or keyword extraction then in that case can it work?
+The Admin: For those needs and words it can. So if Ankit Dwas was really famous and…
+01:45:00
+The Admin: world renown poet it will work. Yes. And the question was on poem.
+Soham Harshe: Okay.
+Soham Harshe: But there is no theoretical or conceptual limit that it cannot work. Right. Okay.
+The Admin: Impossible that it will work on words that are not in the training index. And I can handle other languages also.
+Anubhav Panda: run this Nom and Germany all these are for English languages right? for code okay so for code bases and all Python, JavaScript how do we do the chunking okay for Nomic will work on that as well for All right.
+The Admin: Where is English now?
+The Admin: Yes. And again someone is asking 400 is good or 200 is good is a general. So code is a perfect example. Where should we chunk a code right at between a function end of between a class. So that's why the length of the chunk is a semantic question. It's not a deterministic thing that you say that 250 is the right number. So we have to be very careful in when we are hunking Everything else is going to be bad. Right. So that's why next session we need to talk about it in depth now.
+lakshmanarao vanimisetti: Yeah. my questions are answered yes Thank you.
+The Admin: Sep. Okay. Stay on.
+Sneha C: Rohan even elastic search also supports dense vectors and…
+Sneha C: all So why is that mil is being considered for dense and only elastic search for sparse.
+The Admin: That's the general thing like market shift can also be used to kill a person like we talking dedicated …
+Sneha C: Only kid.
+The Admin: because if you know about fires then you know that all embedding vectors can be searched through it. Setting up elastic search itself for this course for assignment is going to be a very big problem for a lot of you.
+Sneha C: No, I'm just coming from choosing which one to go from that point of view.
+The Admin: I suggest use fires that is as barebone and as clean as possible and…
+The Admin: then try and see the problem is when you're deploying something you need to know why you're deploying something else. So you need to be aware of those problems.
+The Admin: So the solution is evolutionary just not because someone recommended it. Okay. Dashish.
+Sneha C: Okay, thanks.
+Debasisha panda: Rohan how to handle whenever the retrieval context will be higher than the LLM capability like let's say OSS or something it will handle one lakh tokens. So if my retrieval context itself is two lakhs or 2 million tokens then what will happen is usually there is every time we have to restrict our retrieval or…
+The Admin: You have to right it will like even…
+Debasisha panda: so it will not cause any hallucination or loss of information.
+The Admin: if a model has a 1 million contacts I've seen that by the time I'm at the end of the contract it starts hallucinating. So that's true even for a big model and when you have such a big thing then you'll probably want to be very careful of…
+The Admin: what you send.
+The Admin: So probably you will search 2 million you will get 2 million in the context you'll send it to some other LM to summarize them reduce it to something like 20,000 then send multistep it's little like Superman and…
+Debasisha panda: And…
+Debasisha panda: one more terminology is coming about the graph rag. How it is different from hybrid? Is it the same or it is something new?
+The Admin: Spider-Man both are superpowers Spider-Man can have a graph and Iron Man can do that's all just the way we store
+Debasisha panda: Okay,…
+The Admin: Literally Gish noic is good at English.
+Debasisha panda: Thank you.
+Girish Rao: Are these language agnostic? can I mix and match French, German, English documents? No. Okay,…
+The Admin: Most of us documents are in English. If we were in Germany and we were saying we're talking in German then probably Nomi Gemini will have to read there.
+Girish Rao: cool. Thank you.
+The Admin: The reason is that you're Vasant right?
+Vasanth Balamurugan: Yeah. does the relevance of sparse embeddings comes from the fact that we do not want to custom train the embedding model or is it for a different reason? Mhm. Okay.
+The Admin: The reason is the Vasant Bala Murugan is not a famous guitarist and you're asking about Vasant. So dense retrievalss fail at ID or numbers or specific names or stuff.
+The Admin: It cannot work there. That is why we have keyword based assistance.
+01:50:00
+Vasanth Balamurugan: But if there are any domain specific embeddings that we want is pre-training still a norm that sorry is fine-tuning still a norm for the embedding models.
+The Admin: Not really. won't be super Slightly better, but won't helpful.
+Vasanth Balamurugan: Okay. Got it. Thanks.
+The Admin: Because Fires.
+Vikas: Hi everyone. So is fires in memory database or can we say it is a database so when you said that Facebook works on files everything is some sort of a backup they are putting in memory somewhere to make it fast.
+The Admin: Of course, it's both. Fias has a index that is there on your computer when you shut it down and when you load it, it can be in the memory. Most of the time it's in the memory because it's small and efficient. That's why it's fast also. Yes. And for is easy, right?
+The Admin: One memory for the whole world.
+Vikas: Yeah, it is definitely faster…
+Vikas: but I mean considering the size so it would be expensive.
+The Admin: All the Instagram likes are sending them.
+Vikas: Okay, that makes sense. Yeah, thank you.
+The Admin: Maharaj, have you seen the Maharaj TV series?
+Shishir Maharaj: No Rohan I have two questions.
+The Admin: Okay. done.
+Shishir Maharaj: So first is when 10 emitting captures meaning depth…
+The Admin: Okay, because there is no embedding for Abhinav or…
+Shishir Maharaj: it fails in capturing ports and why is PM25 All right.
+The Admin: Rowan Shraan, right?
+The Admin: There is no embedding for 47 or ATS1996 and it's not possible. Everything has to be broken down in tokens when we send it to LM also. So it cannot in 768 remember think of it like this. Let's say reverse is true. Let's say this whole page can be described in 768 right that itself is mathematically not possible. We are breaking the Shannon's entropy law here. So if you read about information theory, you'll know that there are minimum number of tokens or bytes that we need to be able to save this. What you're saying is that we can store the whole internet into one single thing. Not possible, So words which are new for example fires itself will not be able to unless the model is trained on fires and the model knows that whenever fires comes in for example Mahatma Gandhi part of the database.
+The Admin: So when you have ma talking about Ma Ma Ma Mahatma Gandhi and then you actually do a query in Mahatma Gandhi your fires and Nomi and others will fire but moment you talk about let's say new Bengal chief minister it will fail it has never learned about it yet not updating adding important and…
+Shishir Maharaj: Second question let's say I have set of 5,000 documents I've created embeddings but tomorrow if I have more documents coming in so I'll have to keep on updating my embeddings and…
+The Admin: that's a good part whenever you have a new document is added.
+The Admin: Five index.
+Shishir Maharaj: so this has to be automated processor That's all.
+The Admin: Yes. Very soon next session or…
+Shishir Maharaj: And last question I saw something while you were scrolling down that reciprocal rank fusion and all those metrics when I covering that.
+The Admin: next session.
+Shishir Maharaj: Thank you.
+The Admin: Don't worry I'm with you.
+Nawaz Ali: Rohan someone talked about graph database.
+Nawaz Ali: Is graph database both dense and sparse because nodes are saved. so probably these keywords error codes can be saved as nodes and…
+The Admin: A graph can be used for anything right?
+Nawaz Ali: at the time we can use both right?
+The Admin: So graph can be for model in fact our final architecture is graph based also. So graph can be used for anything. So spark graph can be for dense also. Yes. Yes.
+Nawaz Ali: 
+Nawaz Ali: Can we use both? Okay. Thank you.
+Avinash Anad: Hello everyone. Yeah I had the same question. I was finding it difficult to visualize both dense and sparse embeddings in the single things and…
+The Admin: This is done.
+The Admin: This is pass. Yes. Welcome.
+Avinash Anad: yeah and fast is like a seeker dbseker and also we have BM25 as a range so it sorts based on those things I can figure it out and…
+The Admin: Yes, thanks
+Avinash Anad: one more question Ron we did 50 into 400 into 1.3 so that 1.3 you converted words to tokens …
+The Admin: Average of tokenizers used by Gemini and…
+Avinash Anad: why 1.3 or something like okay so word two tokens…
+The Admin: charas. Average sort of
+01:55:00
+Avinash Anad: if you do it for 1.3 it will be like that
+Sourav Ghosh: So the question is like we are saying that we can any chunk that we pass we get it into some model like whatever dimension it is 76. so if the chunk size is huge it's a book or entire pedd. So is there a limitation on the chunk size that has based on which embedding model we are passing is there limitation on that?
+The Admin: That's correct.
+Sourav Ghosh: No 81 92 we pass more than that it will overshoot something and it will not tokenize them. and how do we get this sec length is like a common term we can find for any of the models that we want. Okay.
+Ibrahim Khan: Yes Rohan so my question is that this technique of creating a rag based system we were doing it I think 2024 era where the models had limited capability 40 and 4.1 now we had better models from 5.2 into onwards with better tool callings and all and then Karpati tweeted about creating a wiki sort of a structure and then post that lot of red libraries have come where they are creating a virtual file system or tree search kind of things so
+Ibrahim Khan: where does all of this sit and is it a right question to ask at this point in this course I don't
+The Admin: First people are asking the dimension change right you can see 768 is 67.99 and…
+The Admin: 2048 is 68.16 the difference really in increasing dimensions is there but not much right that's why I really love 768 it's a really good balance of accuracy the second advancements will keep on coming What we need to know is the base. Now you have not asked this specific question but I'm answering another question which is very similar. I've been asked a lot of times how do I know what to learn and the simple answer to that is I see what survives. If a new paper comes in then they claim that I've broken the world solve poverty but in the next month nobody's talking about it people are using it that means that I don't have to invest my time. I'm always one month or two month late in picking up something. I see it survives.
+The Admin: I see that people are using that as a benchmark when they're launching something else or not. If then I need to learn that otherwise just forget about it. All of this is marketing. Startups need to publish the research houses that get a lot of investment and money to do research. They have to publish all these publications. We stay away as long as it doesn't become something that people actually use, So we are covering the best of the stuff possible. Everything is built on top of it. So moment you're in fires, it exposes you to a lot of concepts. Moment those are clear, then you know that for example someone was saying chroma TV or elastic search. Okay, let's say your implementation was a mobile phone or an embedded device and you want to do retrieval There is no other option apart from fires. So by covering fires,…
+The Admin: you're making sure that every single platform is covered. Now every other new stuff that comes in, it is good in a specific sense. We're not covering any of that.
+Ibrahim Khan: But then my question is that file system just as a concept purely not about the implementation or…
+Ibrahim Khan: any code related thing but then file system because the models have improved so much why do you have to put this into a vector why can't it just figure it out if you have a file tree if you have your documents in a file it can in a TOC…
+Ibrahim Khan: then it can figure it out. what's the harm in that?
+The Admin: Yeah. …
+The Admin: if you're using cloud you should be able to answer that what's the harm in reading every code file that is there or every log output that is going inside. If file system itself was good enough then in fact every day on LinkedIn if you go there's a new thing that suppresses the context that we send to clause right if you convert everything into file and there is no relative exact search for the current context then you're going to lose it file system makes discoverability easier
+The Admin: It's a indexing problem solver. It is not solving the actual problem of what do we send and that is the topic of today. We're not debating the files index is the file based system is best. You're competing here with the fires index system.
+Ibrahim Khan: Okay.
+The Admin: You need to realize that the question is on the fire files dex versus filebased method. And second is let's say you have a whole Wikipedia you can't work with it moment you have technical documents that are dense and then you have PDF for every document won't work for it okay no never do
+Ravi Shankar: Will this work on actual text documents or if I have numerical values that are converted into natural language and then do the embeddings they work better no that is not the example like let's Okay.
+02:00:00
+The Admin: that use the hybrid one where the BM25 can find the numerical values not helpful instead of 9 9.56 something like that if you say 9 very weak way of doing it.
+Ravi Shankar: Against your name, you have an SQL database and you have my name and my age and the car I own and so on and so forth. I convert each of that into a text like Ravi's age is so much Ravi owns a car and then I create text out of all those structured data and then do an embedding on that. Would that actually work in terms of let's say I use embeddings for clustering for example? Okay.
+The Admin: You don't understand. embedding is creating a semantic knowledge around something.'s knowledge. It's not information.
+The Admin: If you're looking for information, you need to go on the s sparse side. If you're looking for knowledge, you have to go on the dense side. Both are different. If you're searching, do you have a car? Do you have something? Then yes.
+The Admin: But which car do you have or is it 15 year old then you have to go sparse moment in Rohan the meaning is lost right?
+Ravi Shankar: But the embedding should say between Ravi and…
+Ravi Shankar: Rohan depending on the kind of data that you have the okay.
+The Admin: You can't do a ravi search and ran search using dense. We just discussed this only famous Ravi and Ravi Shankar for example the satarist he is there in the fires in the nomic rohan gawaskkar may also be there I'm yet not there unfortunately
+Ravi Shankar: Yeah. Understood. Thanks.
+The Admin: Next question.
+Rahul Kumar: Hi Rohan. I'm having the followup question on the same. So let's say we are doing the embedding on the text. And we are storing into the vector store and let's say the images are there in the PDFs which we want to use it.
+The Admin: Next session. Not answering.
+Rahul Kumar: And how about the table and all like the next? f***.
+The Admin: It's a part of chunking problem. Next session.
+The Admin: Next section.
+Poornima T A: all that we are discussing does it hold good even when you're dealing with code do…
+Poornima T A: which have one more question so with the tense and sparse embedding vectors do we even store the original documents so when you retrieve you're going to get the embeddings or…
+The Admin: We have Yeah,…
+Poornima T A: the original okay…
+The Admin: we have to for UI and UX purposes basically you're saying you will index your lease agreement and…
+Poornima T A: but no I will keep the lease agreement as well otherwise I won't understand these embeddings right and…
+The Admin: then delete Gota original agreements are not deleted. The back background indexes may keep on changing.
+Poornima T A: in the same DB so it is stored in three places I have the original document Then in the sparse DP. I store it sparse vector and the dense vector.
+The Admin: That's correct.
+Poornima T A: So it's stored in three places.
+The Admin: That's correct.
+Poornima T A: Okay.
+The Admin: All right. So Q&A has ended.
+The Admin: And this is for those people who are able to not find where the&A ends in the video and complain. So Q&A has officially ended and retrieval memory So now the course session begins So memory upgrade now memory is really exactly as we had last time apart from the two new things that we have memory service in session 6 stored items in a single JSON used to look like this earlier but if you look carefully we have one line added here. we have embedding also. So whatever you're storing in the memory is also embedded immediately right and the benefit is now you can search fast. Now you probably have only 10 20 memory so you'll not see the benefit but we are slowly taking the code to the production side where memory has 100,000 elements and you want to search something fast right and again keyword search will fail in most of the time.
+The Admin: So in that case this embedding is the only option for us. Remember you're searching for knowledge You're searching for the keyword then embedding is not required. Rest of stuff was already built last time. So that's the only difference that is coming in. So the second persistent file is along with son which is going to be As I mentioned earlier fire index will have the index of all the embeddings. That's the heavy file. That's where the actual numbers or embedding values 768 for each of the chunk is stored. And along with that we'll have one more file which is called index ids. These are the ids for those these are the keys right? So when you're searching something fires is not going to return you the emitting itself like you say that I want to learn about photo photosynthesis in at night maybe say there's something on moonfield photosynthesis it will not give you okay 768945.68.8
+02:05:00
+The Admin: You don't want that. You want the id of the chunk that has the meaning or the knowledge about that particular part that is stored in index So you have memory. actual index. Files and index ids which is something you can read also and then you can use programmatically to go to a document and pick that chunk and show along with other metadata. What document it is from? It is a chunk number eight and n because you like to share the chunk 7 8 and 9. Again an engineering question. if the sim the similarity index said the chunk number nine has a context are you just going to send chunk number nine you probably need to send chunk number seven 8 9 10 and 11 right it's a very interesting question if you think about it so you get the full context right it's like when you go home and then someone tells you I need to know the context also right so then you are told some context before and after now sometimes the context
+The Admin: the surface half an hour. Yeah. who are you? You don't want that. So imple very important question because otherwise after office your context is gone. So if you delete these three files together you've deleted agents memory. So you need to delete memory.json, you need to delete index.fs and you need to delete index_ id.json. Then everything is wiped up. Now you can change your embedding model from nomic to gemini. Yes, this is in session six we had a remove function for ambiguous free form content and this is nothing new. the same addact was there last time also. We're just adding the embedding here also. So every fact that is stored is going through embedding. So that is perfectly fine.
+The Admin: the fun the two functions for fires one for index this chunk and second is get me the answer are in the MCP. So now whenever your P file or MCP server comes up fires is already up. You don't have to worry about it. Gateway has again an upgrade and the gateway upgrade right now is that we have Nomic and we have Gemini embedding 001 models. You can decide which one you want. If you cannot install Nomi on your computer which should be Not difficult because a very small model Your computer will heat up. You can cook omelette after fires after nomic runs. By the way, if you index let's say 4,000 or 400 or 40 documents also deep dense PDF on your computer Nomi you can turn it around and then you can cook omelette on it. It will get very but it's a one time hotness. probably run at night and you're done.
+The Admin: don't do it while you are working with it otherwise everything will heat up. So gateway handles that there's a fancy diagram to explain this doesn't happen that there's a back but once you're married in the LM gateway v7 you're married to that embedding in between you can't change as I explained okay so the two MCP tool one is index document which index is a vertical document in 400 is the internal junk size we have used and then overlap is 80 as I explained earlier these are the things that you can change but once you change make sure everything is similar
+The Admin: dumb bad method. We are going to talk about it in more detail in the next session. You've just learned about rack. Be happy about it. Do not ask how do I make it better? Use Learn that it's not good. In the next session, we'll debate and discuss how do we make it better. Search knowledge gives you five. Why five? I don't know. I like that number. You can have three, you can have seven, you can have 14. It depends on how much context can you give your element. Five seems like a good number. And as I said, we just getting five chunks from here. We have to also think the chunk number 47 will go with 46, 47, 48 or not. Those are the open questions we have. Even after we have all the chunks, we are still going to do sparse embedding. That will also give us chunks of some documents. Now the reanker needs to look at all the information and decide what do I send and that can also not read all documents because if I found five and four 40 documents 40 40,000 tokens, I need a really good LM to go through it and say that I think the first one is good or second one is good. Right?
+The Admin: So we can't pass on the big problem to somebody else. We have to be smart about So again discuss in the next session. MCB tools convert something to a MCB function. about that not a tool can call it. Remember your doc strings are very important. So this is the doc string that we are using. a sandbox file or artifact has to be in sandbox or artifact and write the chunks into memory as a fast record where they become fire searchable for later queries. Uses when the content must be searchable across later turns or runs for oneshot inspection of a read file. Now we have vector search over previous index fast chunk. Use this rather than refetching or rereading source files when memory already contains index chunk for the topic. very simple doc things to explain to the decision that do these are your new superpowers. Okay.
+02:10:00
+The Admin: Here I'm going to talk about assuming that I am like you and my target was just to solve the assignment. So in session six we drew a comparison between what perception can do and what decision can do. Perception is only supposed to look at the problem break it down and give it a decision. It is not supposed to tell decision solve it like that decision is supposed to be free to decide what tool it needs to use. So in the first implementation and this will happen with you in production in the first early implementation you may be able to solve problem also and that's what I also did solve the problem but perception prompt was changed because decision was not working properly so I changed the perception prompt to decided okay if this kind of query comes in give a hint to decision that you can also use this tool that is crossing lines you cannot cross that line perception must not know whatever tools are there skills are different we're
+The Admin: talk about skills in future sessions where perception will tell decision okay I'm giving you this skill where it doesn't know in terms of a skill okay it's like telling somebody or telling me telling you that I'm giving you a skill of becoming an accountant literally a file transfer to you but I'm not going to become an accountant and then tell you you're an accountant remember moment you expose a perception or any LLM with a prompt which has a tool name it will remember it we don't want that so the regression was easy to understand and easy to slip into also So the habit or the greed of solving a problem by just changing a prompt once and then hoping that it works for everyone every step is very easy to fall into. Do not do that. Stick to the architecture. Perception is clear, decision is clear. All the other future agents are going to be very clear what they want to do. So there's tool selection has two clean homes. Where should the tools live? Either they're going to be living in the decision system prompt or they're going to be living in the perception.
+The Admin: They must always live in the decision side because the number of tools are going to explode very soon and you cannot have all of these tools sitting in perception where the perception has top two jobs not only to tell the CFO that you need to do something but also tell him the tools that this is how I want to do don't do it so the boundary was restored by making sure the perception font was clean it took away the two names from perception and then give it back Right? And that also solve the queries. that's the overall architecture we want. So pattern is something that you can generalize. Moment you think that decision is failing or some tool is failing. Do not try and fix that immediately. Try and see why did it fail. Given the information could the decision have worked. If answer is no, then the error is coming from somewhere else.
+The Admin: Do not write prompts or create structures where expecting elements to hallucinate or be extra smart. That's the wrong approach. Keep lives of everyone very simple. If everyone has a very simple life, they know what they need to do when the job comes in. Everything will flow very very beautifully. You will not face issues or your system will not just crash. So a diagnostic discipline examine what a role C is as just explained whenever you're sending you and that's why I wanted you to write the code also in session S6 and very smartly many of you are not because the code will anyway be there in why should I work on S6 because I'm going to get the code in S7 I'll see the code and I'll submit S6 assignments are all going to get zero as I said moment discussion is over and you click on download zero because I want you to really go through the code that you have written
+The Admin: in yourself. Please understand when you are sending some objective to a particular agent here decision, you need to know what it is reading. You need to know what you're sending. unless you are aware of it, you'll not be able to debug it properly. All that I said in so many text when I write, Step number one, capture the failure. Why did it fail? What happened? Identify the role which are the perception decision action or the memory produce the output you consider wrong.
+The Admin: reconstruct the input very very important that's where our initial code inspect remember first two three sessions we're reading Python that's where the code inspect will come in stop there or do PDB stop there trace right all of that thing is there what is that you're sending in decision what are you sending to perception very important because moment you say that okay claude do it solve it for me I'm going to have a cup of tea you're not learning really you're just going to get a course participation certificate Indian and
+The Admin: You'll claim on LinkedIn but deep inside internally that you lied, you cheated and you have taken somebody's job and you have hitting somebody's stomach and you're not really truthful to yourself. You'll not be able to wake up properly. You'll have headache. You'll have a bad stomach and a very high heart rate whenever you're going to be seeing me or this course or anybody else who was there in this session. Don't do it. Please read the stuff that is going inside the agent. we have worked Query A was already there. Shannon Wikipedia, it worked. then we have the Tokyo activities weather that is again coming from session that also worked. Then we have mom's birthday. You store it once and then you again retrieve it from the memory that needs to work with the new architecture. Remember we're not changing anything. We're just adding two MCP tools, right? That's all. Of course, your decision now will get those two MCP tools also. We're doing a single IO research where we're going for a multi- web search and then we're coming back with result that also worked. Here are the new queries.
+02:15:00
+The Admin: index the file paper/attention.mmd. So I made this code which you will have now in the sandbox we have papers. So everything needs to be in sandbox. That's the first rule of sharing anything. This is for pundong. So you can also see the limitation we are adding in our code is that everything that you're going to be working with needs to be in the sandbox because this is how you will do in work in production. All documents, all files, all downloads, everything should happen in sandbox, right?
+The Admin: because your agent might decide to do minus RF which it may and you may allow it also but only in the sandbox right so do not do stuff that is not in the sandbox so you want to clear something and have not made it complicated by downloading PDF and then converting this attention.mmd by the way was downloaded by crawl for AI and then converted into MD and saved here so that is also part of the whole thing right so this is the paper we have control shift fe to see you can See that's the paper that we downloaded the first landing page not even index the file papers attention.mmd and tell me what the three key contribution or transform architectures are according to this paper. Now this needs to have in multiple iteration.
+The Admin: your perception must break it down because one and that is what I wanted to see that can it do it or not after the index is done then it has to figure out the contribution architecture so five iteration perception decomposes into two roles index the file first then answer from the index content your decision is going to be lazy it's going to read and index we don't want that we want you to index it then read In future you'll have to index all of these documents and then go to document 25 and read. You cannot have everything in context. So you need to make sure that your prompts are such and your structure is such that it follows this particular architecture. Action reads a margin file from the Chunk it into 11 400word documents window of 80word Embed each chunk and writes a chunk to fact item. Attation two finds the perception scan and memory hits recognizing the index chunks are there.
+The Admin: Then the decision is called for search knowledge and from there it gets a chunk and then it responds back to you. That is what we want. Right now the query first run index every md file under paper. So we have attention we have lura we have Confirm how many chunks were there in the total index are there in the total because it is in the index in the sandbox. It has all the commands that we introduced in last session also to search inside and see how many files are there. Now run one takes 11 iterations because there's so many of them. Perception first interaction emits a discovery goal In the list directory can see that these are the total number of chunks I have. Second the state is there across the papers I have indexed. What do they say about chain of thought reasoning?
+The Admin: So now it needs to figure out that chunk chain of thought and now tell you back right here we're not asking what is the license plate number for my car if that was there we have to make sure that BM25 others are also involved properly then we have a synonym recall across this paper how do they handle the credit assignment problem credit assignment problem is nowhere written if you do a chunk if you do a search credit assignment in none of the documents you're going to find them coming together that's where you're going
+The Admin: to feel the importance of rag that why do we need embedding or dense kind of stuff if my simple keyword can work right here you're going to understand that okay it is actually meaningful now cross document synthesis compare how the react paper and the chain of thought paper differ in the treatment of intermediate reasoning very interesting problem right so three iterations such knowledge is going to return a chunk from both the papers now reach the attached chunk and produces a comparison that distinguishes react interle of reasoning
+The Admin: and tool action that we do in chain of thoughts and then it's going to present the result very beautiful queries all of them are solved already for you I wanted to look at the result and see how they actually perform there's a log also which is not saved with you so you will have to go through the pain of running each one of them I'm going to take you through all the logs so this is the first log plus So, compare how the react paper and the chain of thought paper differ in their treatment for intermediate reasoning. Here we list the tool web search, fetch URL, get time, list directory, edit file, index document, search knowledge, right? Eight hits memory because all we get eight hits for this particular part. Now, query the existing and this is what perception is saying.
+02:20:00
+The Admin: The existing database for Query the existing knowledge base for the chain of thought Both of them come. then the third objective for decisions. Compare the treatment of intermediate reasoning in the react and chain of thought So iteration two and these ticks are what is done, what is not done, perception is maintaining that right very beautifully done. So I hope you like the overall structure of the code. state state on disk and what crosses the process boundary. The persistence story is worth making it explicit here because this is what enables a session the query f after indexing five the agent state directory contains three files we'll have memory.json
+The Admin: JSON we'll have index of files and we'll have index ids that JSON right now the reason we have 23 indexes and we have 24 items in memory is because we are creating scratch pad also some sometime between where models can write to a scratch pad if you read the code you'll understand what I mean the point here is when perception is asking being asked about that memory fetches those ids and gives it it's not giving the embedding anyways can't be read by another model right I can't take the embedding of the chunk and give it to LLM lm M is just going to predict the next token. It's going to say WTF what have you sent to me. but we are telling our perception that hey in the memory I have these in the knowledge base and now your perception can tell a decision. read about that right so that is what is happening because the index was already created. Okay I was reading hotness design honest design choices.
+The Admin: The first is that of our vector retrieval has no hybrid parse sparse partner as of now. Production requires BM25 and learn spaces. We have not done that. this is only dense retrieval in parallel combined with the ranking that we need to do in the next session. This is not done. reciprocal rank fusion BM25. So all that is not done yet. Memory has some sort of BM25 but it's not the actual document BM25. The second is the chunking logic is heristic. We are chunking like idiots right now. We going to be improving it in the next session. For example, a simple question to you. Let me look at the code here and ask you how do we chunk the document? If you say 400 characters, let me select this. How many characters are done? It I think this is characters. Let's say we talking about Six characters more. 1 2 3 4 5 six.
+The Admin: Yeah. Is this chunking good? No. Right. So we need to be very careful about how do we chunk in the next session. the fire index is reloaded on the disk in every call. that's the architecture because we don't have a service yet. The cost is small because our database is small but ideally we'll have a files already overloaded already there in the memory and you can just read it. Fire syntaxes are going to be small even for big big numbers. The fourth is a fixed embedding model constraint. if you're using nomic then everything has to be nomic. If you're using Gemini everything has to be Gemini and that's true for all the services in the world. no change there at all. Okay.
+The Admin: In the session eight I want you to know this so you do attend the next session also session eight we're going to be introducing a multi- aent D architecture and three retrieval upgrades that are going to be natural extension of what we've done today some of the questions yeah how do I do that how do I do this how do I get rich all of that is going to be answered in session 8 so don't miss it we are going to talk about semantic chunking which I feel is one of the best methods of chunking has an expense but that expense is slow right so we pay to get better results and you're going to see if this is going It will be drastic improvement in the overall rag retrievalss also the hybrid retrieval finally will be implemented in next one. So reciprocal rank fusion BM25 will be there in the next one. Now we'll also have parallel fan out of agent loop level addressing the inefficiency search by parallel fan out is basically doing things in parallel. Why can't I launch three decisions parallely?
+The Admin: Because if you see what our session our seventh F query did. Yes. If you remember what our FQY did, it launched log or even this one also, right? Or go read the React paper, go read the chain of thought. I could have done this parallelly. I could have sent two people, get a job done and then send it a third one to compare, I could have done that. I have not done it. So that's the fan out essentially. How do I make sure that I can run things in parallel? So that is what is coming in next one.
+02:25:00
+The Admin: Skills are going to be slightly forward but I'm going to slightly explain what the skills are and why are they becoming so important and I think skills are the future also and we're going to simplify it down. We're not going to be yet using it in a way people use it today but we're going to set the base so it's clear how do we use them. Then encoder reranking is a candidate for session beyond eight. Cross encoder would mean that what if you have a different encoding systems right for example the multimodality is a good example where we have image and text but here specifically we're talking about the reanking system of the second order. So slightly more complicated topic coming in very soon.
+The Admin: So I heard about cross encoder reranking and I'm feeling FOMO and I'm not able to sleep don't worry it will come but not in next session and then somebody also asked that we have a graph based knowledge or knowledge graph augmented retrieval and entity level don't worry it will come okay it's coming don't worry right it's like you're a 5-year-old and you're asking wait there's going to be time for all the answers now code is
+The Admin: you see code if you're not able to find it for some reason which I'm sure you will not be able to find it use your mouse I have two fingers so I scroll or you can just scroll here and click here I'll try and do it for the rest of the sessions also so you can immedately find the code so this is the code for S6 and both so S7 will directly work on S6 and this is LM gateway v7 you have to add your ENV file which has all the keys for different things that I also explained in read me now what
+The Admin: Here's your assignment the beautiful part that you don't Remember next session also if you have not submitted assignment letting you ask the questions at the very end of the session I'm going to Peter. Do you know Peter? How many of you know about Peter?
+Ashwani Bindroo: Hindi, English.
+The Admin: Okay. Not beta.
+Poornima T A: organization you're talking about.
+The Admin: Ta. Pa stands for pain in the ass.
+Ankit Biswas: bread. I'm done.
+AJ Jain: 100 games.
+The Admin: If you do not submit your assignment, I'm going to be a peta for you. I will not let you ask questions and only questions at the end. What is assignment? Pass the eight based query that I have. Run through it.
+The Admin: the process one by one. what agent is doing. Go through that step process. Just running these eight queries should take you around half an hour because the gateway will make sure that you're not bugging your Gemini or 4.1 GPT mini on GitHub a lot right so let's see it go through each step now here's the important assignment for you without changing anything I've done right you can change the prompts and other stuff but architecture remains same you may need to add something more if you want on MCP but you can't remove stuff build
+The Admin: a real rag application over a corpus of 50 or more items. these 50 can be the 50 websites you visited last time or last day or last week. Be very careful of what websites you visit now when I'm talking to Or a Chrome or desktop app which are on a desktop where you're searching about something be very careful about what those documents have. And any application that needs to retrieve that work. So build something that requires documents and at least 50 of Why 50? I want your computer to be So moment you go out and you can actually boldly say I have a very hot computer. So you have no make and other searches will be hot. But if you're using Gemini embedding then you have to wait for some time because that happens in cloud and cloud there's a minister in India I think who asked what happens when it rains to the cloud.
+The Admin: So you don't have to worry about it. But Gemini can also embed these 50 documents for you which might be something that you have if you wait for long because I've added something like 5second of wait there's a five. Okay by the way it's there in the readme for the gateway I have a exponential back off for embedding for seconds 10 seconds and 15. So after each so because we will document documents which have a lot of chunks 15 seconds weight is by default there. design five queries against your own corpus and each must answer correctly with index and fail without it at least two must require semantic recall and every query words do not appear in the chunk that answers it. This itself is a assignment.
+02:30:00
+The Admin: You have to find five queries that satisfy this as a requirement. Also, each answer must correctly been indexed. That's clear. and fail index is not there. You have to prove that it fails. So just shut down the MCP or maybe just don't add that function. It should fail. At least two must require semantic recall. So something is done and it can only be solved semantically essentially where queries words do not appear in the chunk. For example, it's a good one. Write document about yourself. give it to fastest and nom to chunk Google to chunk and then ask or do you think I'm a psychological killer of or do you think I'm something you can ask those questions right and I'm hoping those words are not going to be there in the document that when read yes you are you might be surprised architecture rules carry over from the session the gre test on perception system stays the gate zero MCP tool names inside right I will do
+The Admin: do a grip search on your perception prompts and I should not see any MCP tool names mentioned there. Adding a new MCP tool in the system prompt is going to be forbid submit a GitHub repo with eight base traces in read me. I should be able to see your stuff. there are five custom traces with no output and a short video showing me that it actually worked. When you submit a GitHub and tell me that it works, don't expect me to download it, put my ENV key to your key and then run it. That's not going to happen, Please save my time by submitting a very short video. Just take me through the five eight 1 2 3 4 is fine but 5 6 7 8 is very important. Right? So five traces with no corus comparison and you're done with the assignment. Now you don't see video here because I've not uploaded yet. And again if you want to use the video then use the finger. All right we are open to questions. Session has ended.
+The Admin: If you want to go and say I'm done for today, Rau's the next session remember me.
+Raghu Rammohan: Rohan this is on that telegram you had asked to remind what is rem layer.
+The Admin: I answered that.
+Raghu Rammohan: Okay.
+The Admin: Okay, it's a short form of remember me. So I created something in V2 where Remy layer was specifically there to show the facts about myself. We calling it facts here.
+Raghu Rammohan: No, it kicked in
+The Admin: Yes. No,…
+Pushpendra Sharma: So I have question on the last assignment. So I have not submitted it yet and if I don't download this session 7 code file can I still submit it?
+The Admin: We can submit it but scores won't be there.
+Pushpendra Sharma: Can we at least get a feedback like whatever is
+The Admin: Feedback is you solving the queries without looking at it.
+The Admin: Problem is that I can't figure out whether you looked at SMA or not. I don't have a backend system to and even if you don't know download it theoretically you could have asked any of the other member to download and give it to you also right don't worry submit it like…
+Pushpendra Sharma: Yeah,…
+The Admin: if you honestly write there Ron I did not look at the code I wrote it myself I believe you because I can see the code also so don't worry yeah…
+Pushpendra Sharma: I'll mention it in the description.
+The Admin: but just understand it increases the time that I have to spend
+The Admin: Turn it on.
+Pandurang Patil: There are a couple of question that I have one is while selecting a model for a search embedding model for a given search for a given…
+The Admin: So sorry it's a wrong question.
+Pandurang Patil: if no.
+The Admin: We have not discussed any model for embedding search. We just said Fiest does it for us. That is fine.
+Pandurang Patil: So the way you use one model for the den search for embedding for that is the vector DP.
+The Admin: That is We don't sorry there is no model for search.
+Pandurang Patil: No the model that you use for converting the text to embedding single. So okay I let me correct recorrect this wording is to convert the text to vector the model that I'm going to use…
+The Admin: So I wanted to be very clear.
+The Admin: Cool.
+02:35:00
+Pandurang Patil: in my use case if there is custom use case or there is domain specific use case if I see there are some use cases or there are some data points that are not being match for a given query. how things can be improved can be a finetuning somebody asked finetuning would be the option but you mentioned that it would be very rare scenario where one need to do a fine tuning.
+Pandurang Patil: Is that the case or if there's let's say privacy or legal or medical or different categories there could be a scenario where in fine tuning Okay.
+The Admin: I do not see any scenario…
+The Admin: unless one has at least a million dollar for fine-tuning because finetuning for embedding we're talking about big big resources and a lot of documents the actually is not finetuning it's continual training tuning for embedding documents really don't either by the mix method.
+Pandurang Patil: So all the possible scenarios can be solved with the I moving on to second question you created in this example memory embedding for the memory.
+The Admin: We discussed the hybrid method.
+Pandurang Patil: So is it I'm not sure…
+Pandurang Patil: if I missed or something. Is the memory also going to get searched like a embedding search?
+The Admin: Yes, all search is mixed search right now.
+Pandurang Patil: The third question I have is one more question.
+The Admin: You said two questions only. Okay, go ahead. Go ahead.
+Pandurang Patil: I lost the question. Just give me a second.
+The Admin: Ask again. Don't worry. Okay. Is that something?
+Ankit Biswas: Yeah. Hi. can you just go down a little bit on the assignment part? I guess. Yeah. Okay. Yeah. this part where you mentioned the grip test or perception system stays the cake. Zero MCP tool names inside. Add adding a new MCP tool for a file. But okay,…
+The Admin: Yeah, it cannot be the part of the MCV tool. it cannot be part of the perception prompt.
+Ankit Biswas: I mean that was already given right last week also.
+The Admin: Yes. Just a reminder…
+Ankit Biswas: Okay. So, it's just a reminder.
+The Admin: because one of the solution to solve the problems will be to just make it a part of the perception.
+Ankit Biswas: So in a way this perception decision it's like we are modularizing…
+Ankit Biswas: how we used to modularize our software engineering code right it's on similar principles.
+The Admin: Correct.
+sandeep hegde: Yeah on so I recently read about the code mode where instead of calling MCP tools…
+sandeep hegde: though so they write some functions to solve a problem. So are we going to touch upon something like that?
+The Admin: Yes, if the times comes.
+The Admin: Yes, if it required much later.
+sandeep hegde: 
+sandeep hegde: And also in the published session content it is mentioned about something called strategy profiles conservative exploratory and fallback. Did we saw that in last session or it's going to come later? And also something in the current session I'm seeing something mark it down these kind of things pu pdf and al so they are also going to come later right so in session seven memory systems and…
+The Admin: No, I'm searching mark it down. Where is Mark down?
+sandeep hegde: modern rag no I'm reading the published content here so in not the s3 okay That's old.
+The Admin: We stick to today's session.
+sandeep hegde: Okay.
+The Admin: Yeah. Sleep that is fires f is playing the role of coma saving the database nom giving you a set of 768 numbers. Okay.
+sandip jadhav: So my question is the nomic will produce vectors. So that will be the file directly we will use or we mean we are not using any chroma or quadrant or any database to Clear okay. Thank you.
+Shishir Maharaj: Rohan I had just this question I tried the week six assignment but for me it was like whenever I was asking the mom birthday question it would work if that would work the other three questions didn't work and if the other three questions were this one didn't work and is it because I wasn't using Germany or I mean I was using brass and other models or I mean could models be the
+02:40:00
+The Admin: Exactly. No model is not the reason it's basically the overall architecture not.
+The Admin: So if you see why it was failing you'll see in the second iteration the decision is not being told about the availability of the information and the moment you told it about the availability of information the first failed because now decision is expecting to be told right that's…
+Shishir Maharaj: Sure.
+The Admin: why the fourth query was a very important one.
+The Admin: So we solve one two three four together that's the architecture. So look at the code we have now and then you can compare where you went wrong. Okay, I at the end.
+Avinash Anad: Hi Ron. So I have queries with respect to the laptop and all. Can we take it up now or at the end? Yes sir. Okay.
+The Admin: Welcome back.
+Pandurang Patil: The example that you showed you were loading the files in the database when user queries or…
+Pandurang Patil: it would be done pre prefixed and preloaded into the database and then the query would be okay.
+The Admin: Fire says MCP service.
+The Admin: So it's loaded. Moment MCP starts it's there in the database there.
+Pandurang Patil: But in this example, you have done it when you are starting it, you are loading it.
+The Admin: So in this case I asked it to do it.
+Pandurang Patil: But that won't be the scenario in production setup.
+The Admin: This is exactly a scenario in production where you want a document to be indexed and saved. Correct.
+Pandurang Patil: So here you are asking through prompt to load it and u right.
+The Admin: Correct. Yes.
+Pandurang Patil: So is it like I have a tail file storage where files are there when I ask the user for okay so at runtime so…
+The Admin: Yeah, that is what I said. In sandbox you will create that storage of course.
+Pandurang Patil: how but user have to select those files which files to pick okay so there is no filtering that happens automatically or…
+The Admin: You're conflicting yourself.
+Pandurang Patil: by the system based on the query and then put into the Okay,…
+The Admin: We have a user database. Let's say I'm the owner of charg. I want to provide a feature where users can index the document they want. Now they uploaded a PDF and said summarize. I will not index it for them. Use it throw but the user says no remember this document about me then I'll put it to index. That is what is happening in this query.
+Pandurang Patil: makes sense.
+The Admin: Save it forever. Okay.
+Tarun Acharya: So embeddings help us to group similar data in the 768 dimensions.
+The Admin: Yes, 100%.
+Tarun Acharya: The sequence also matters as in when we say talk to someone the sequence also matters. So how does the embedding take care of sequence?
+The Admin: Embedding take your sequence by waiting for seven more days for next Saturday.
+Tarun Acharya: I had a buildup question on the same thing. Let's say I change the data.
+The Admin: We have to figure…
+Tarun Acharya: Not cool.
+The Admin: how do we properly handle it?
+Tarun Acharya: Thank you.
+The Admin: No, ask a question.
+Tarun Acharya: So basically let's say I update the data. You have given us 50 files, We need to do embedding over those 50 files and then do an application over it. So let's say I change the data.
+Tarun Acharya: I went ahead and changed the 48th file. Do I need to embed only the particular 48 file or do I need to mbed everything because Yeah.
+The Admin: what we do is that there's a indexing service that need to run…
+The Admin: which sees the S sha of the file which are indexed. when you go and replace for something else which is a big problem because when you make a production server people might save a drawing for example and then they will change it. So this S sha key is going to change. So the service will automatically be told that this key is chang please index again only that document needs to be indexed again.
+Tarun Acharya: So in case it's a sequence then we would have three specific records which would need to be reupdated.
+The Admin: Okay, I've shared the code for…
+Manish Kapoor: So Rohan I'm a bit confused about the code you will be sharing. So it's like you will be sharing the solution which we discussed and we have to custom build it according to the assignment which we have as of now.
+02:45:00
+The Admin: what I discussed today and…
+Manish Kapoor: Powerful. Mhm.
+The Admin: what was the solution for assignment Same code seven is a grade of S6. So it has the S6 solution already. Your assignment now is to add the code to an application where you're required to add 50 files first step and then come up with the queries which solve this particular problem.
+The Admin: You have to come up with four queries the design five queries sorry against your corpus. So you have to prove the eight work which I've shown. Now you're adding five more. So there are 13 queries that needs to be now solved by your architecture.
+Manish Kapoor: Okay.
+Manish Kapoor: Got it. Thank you.
+The Admin: …
+Sunil Jakkaraju: Yeah. building on what Ponderang asked for data indexing, should the assignment clear all the index before each query or would it okay?
+The Admin: it depends. You're running the session continuously or you're starting You start a new session, index is loaded in the memory again.
+Sunil Jakkaraju: And you also mentioned about setting up elastic search.
+Sunil Jakkaraju: Is this for this search?
+The Admin: No, I did not say that.
+The Admin: Somebody else asked a question and why elastic search and other things are there. You're not using Okay, D. One second.
+Dinesh C: Hey I just like to understand what we do is the documents and then here I understood the flow…
+The Admin: Please wait.
+The Admin: Yes. Now proceed.
+Dinesh C: but when fires it is going to get a similar vector right for the user queries. And it is going to give that vectors to the llm to summarize. But where exactly this translation is going to happen? For example, for this vector, this is a text. Okay.
+The Admin: This retrieved a top matching chunks search fast gives the ch ID number 69, ID number 99. A service now looks at ID number, goes to the chunk and then brings that text.
+Dinesh C: But that text chunk is going to get stored in PS or…
+Dinesh C: it will be in a separate database. it can be database.
+The Admin: Yeah, some other data very simple JSON remember index.json that is…
+The Admin: what is saving correct fires is incapable of saving text separate database.
+Dinesh C: It can be a folder whatever it is right. Okay. Yeah.
+The Admin: Yes. ID document one,…
+Dinesh C: But how that relates I mean index is created in fires but how that chunk vector is okay.
+The Admin: document two, document three. Okay. Okay.
+Dinesh C: Yeah. You good?
+The Admin: Document converted into three chunks.
+The Admin: So chunk document one, chunk three, document one. Okay, this is broken down to three again. Chunk four document two, chunk five, document two, chunk six, document two, and this is broken down into chunk 7, document one. Clear? This is called index.json where I have D1 text C3 D1 text clear.
+Dinesh C: All right.
+The Admin: Fire C1 D sorry this is sent to Nomic is going to add the 768 things embeddings.
+The Admin: All right. and this part of the table is sent to fires and…
+Dinesh C: A key.
+The Admin: fires is going to store a internal index of C1 D1. This one C1 D2 this one. when you send a new emitting yeah it goes to that. Yes. So it says C2D1 matches that is going to go back to the index.json or whatever service it has. Going to go to C2D2. This text will not be sent to LM.
+Dinesh C: Okay. Yeah. Thanks.
+The Admin: Something that
+Swapnil Gusani: So in the last assignment I was having a lot of problem with perception actually attaching the artifact and…
+02:50:00
+The Admin: Prompt only.
+Swapnil Gusani: 
+Swapnil Gusani: and sending it ahead. but I also saw the class notes where you had written that if recently something recently an artifact is created you are explicitly attaching it in the next step that is something which worked but perception was not able to do this even though I made a lot of changes in the prompt what could have been the reason there prompt Yeah,…
+The Admin: If the model you're using Gemini prompt coers your 50 files needs to be on top of the documents I have given.
+Swapnil Gusani: I was using Gemini but I also give examples over there. nothing was working. Okay.
+Vasanth Balamurugan: Yeah. just a quick clarification on the assignment. So when you asked us to build a separate drag application, does it mean that we'll have to create a separate vector DB or the corpus needs to be on top of the existing four queries?
+The Admin: So these need to be there…
+Vasanth Balamurugan: Okay,…
+The Admin: because the eight queries that are there which have proven that works or first you need to prove that they are working and after that your five are working.
+The Admin: Your five is on your but total 55 documents basically sag.
+Vasanth Balamurugan: understood. Thanks.
+Sagar Shete: Ruhan for the previous assignment I was seeing in the decision layer right whenever it was going to a different model sometimes the result varied one model could give a better answer but one model just went haywire so should we pin the model in the decision layer or that's not what was expected Yeah.
+The Admin: You can pin it but you're using the LM gateway V3.
+Sagar Shete: Yeah. But…
+The Admin: Yeah. Then probably in the L gateway V3 you need to make sure that the right model is picked automatically.
+Sagar Shete: how do we do that? we have the router flow,…
+The Admin: I use the router prompt.
+Sagar Shete: Okay. Got it.
+Avinash Anad: Yeah, that's the end of everybody. Okay.
+The Admin: Okay.
+Atul Dumrewal: Yeah Rohan. So basically in the last assignment when I was running the prompts which were given as the test prompts I was getting a different so basically fetch URL was not initially working for me. I got that result but it was working via different function MCP call which was web search. So does that work for the assignment or does it need to use fetch URL itself? So yes,…
+The Admin: I didn't get the You're saying the wrong tool but gave the right answer. How is that possible?
+Sagar Shete: 
+Atul Dumrewal: so search is capable of accessing the URL as well, right? So,…
+The Admin: That's fine.
+The Admin: It's fine then.
+Atul Dumrewal: that works.
+Atul Dumrewal: …
+The Admin: We need to be better at doing that.
+Atul Dumrewal: I wanted to understand I am also facing the same issue as what was just mentioned by swap in terms of this artifact not being read by the decision. So I tried modifying the perception prompt but it's still not working out for me.
+The Admin: But you just gave a conflicted statement.
+The Admin: You said decision was not able to read the artifact. So you need to change the perception prompt.
+Atul Dumrewal: So I was checking if Right.
+The Admin: I was very clear in the last session that if you do that you're forcing the decision to do a two-step hop. It will be told to read the artifact. It has to decide to read the artifact then it has to do something else and that will fail. So perception needs to decide that the decision needs to read the artifact and then attach So de decision is forced to read it. artifact must be the part of the prompt and…
+Atul Dumrewal: So perception is telling that decision has to read this artifact and I'll check…
+The Admin: and your agent loop needs to automatically attach artifact.
+Atul Dumrewal: if that might be the issue. I'll check it on my end.
+The Admin: Yes. Right.
+Atul Dumrewal: right. I'll check.
+The Admin: You cannot have a two-step decision twostep process for the decision. I'm giving you an artifact.
+The Admin: read it and then decide what to do. That's a two-step. You're breaking the atomic principle that only one step is being done every One objective per step saga Yeah.
+Atul Dumrewal: 
+Atul Dumrewal: right. Okay.
+Sagar Shete: Ron expanding on what Rul said right so if we take the Tokyo example so it was first search the activities then fetch a URL but it was satisfying from web search which is kind of generic so that is acceptable but the Wikipedia thing that's especially It should use fetch URL, right? It can't do from the web search thing like the Wikipedia query that you give.
+02:55:00
+The Admin: Yes. that's and…
+Sagar Shete: But is that a perception thing to tell that if a user has given you the data specific thing to do honor that basically fetch this Got it. Okay. Okay,…
+The Admin: sometime strings are also weak.
+The Admin: So MCP doc strings are not really clear on what is the capability of the tool. the decision might not be able to call that properly.
+Sagar Shete: got it.
+The Admin: Okay. VJ Yeah.
+VJ: Yeah. Hi everyone. So in the previous assignment session six so I was like when I was trying to query the different prompts so I was getting this maximum token limit hitting. So that error was there. So I have to RF every time this artifacts and the state. So after that only it was able to work. So do we have to get the max tokens here or like what?
+The Admin: No, what you're describing sounds like that you were sending all the artifacts. That's the only way we can hit the limit…
+VJ: But you were not doing that RF every time, right? Okay.
+The Admin: because I was not sending all the artifacts. I was only sending the required artifact.
+VJ: So how we can manage this Okay.
+The Admin: I had a hard cut that only send 4,000 or…
+The Admin: 1,000 or something like that tokens.
+VJ: So for the first query the artifacts which are created should not be reused. something like that for the second query.
+The Admin: Of course, yes, queries are different,…
+VJ: Okay. Yeah.
+The Admin: Yeah. So first query results are being sent to the second one. It's not a chat GPD kind of thing yet. It's not a continuous chat right now.
+VJ: Where we will have this kind of condition. okay.
+The Admin: You're making a chat agent where you are continuously asking you first ask about India then send a document help me with this. That's a different thing that we need to look at later on.
+VJ: And one more doubt I have while I was using Gemini it was giving five 503 every time when I use Olama…
+VJ: then it was working.
+The Admin: Not sure.
+The Admin: Very weird. But not sure why would that happen.
+VJ: Yeah. Thank you.
+The Admin: Okay. Kitria.
+Geethapriya Subramani: So the index.json we have it under the state folder.
+Geethapriya Subramani: How it should be maintained across the session? It has to be rebuilt for every new session or how it should be maintained.
+The Admin: right now.
+The Admin: Yes. But not in future.
+Geethapriya Subramani: And two.
+The Admin: Okay. Saga
+Sagar Shete: One more challenge that I faced with the assignment was the final answer that was coming. there were three issues. One was like it was duplicating the content around the steps or second is it was giving me more details that I faced error while doing this MCP tool or the three contribution it was not numbering your answers are more crisper right so is it a perception defining the correct goal thing or is there an issue basically in the code also that is forming the final answer okay got it I'll refer the code thank
+The Admin: Yeah, I think it's more related to agent loop problem. Okay, Sep.
+sandeep hegde: Rohan for the fourth query, right? So, finding articles on Python, Sync.io and then synthesizing the number list, right? So, as part of second goal, it has to actually find go and…
+sandeep hegde: find the three separate articles, And it has to save those as artifacts.
+The Admin: Yes. Correct.
+sandeep hegde: And then while comparison, it has to read all three articles and give us a numbered list, right? And while re to read all three articles perception has to attach all three artifacts ID right it should be a att not a single force attach right right okay okay yeah thanks
+The Admin: Yes, that's correct.
+The Admin: All right, I'm stopping the recording, but I'm still here in case you have more questions and in case you're running away, leaving me alone on Saturday is okay because session has ended.
+Meeting ended after 02:59:33 👋
+This editable transcript was computer generated and might contain errors. People can also change the text after it was created.
+
