@@ -236,6 +236,19 @@ _TOOL_CATALOG = {
             "required": ["query"],
         },
     },
+    "index_document": {
+        "name": "index_document",
+        "description": "Chunk a sandbox file or artifact and write each chunk into Memory as searchable facts.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "path": {"type": "string"},
+                "chunk_size": {"type": "integer", "default": 400},
+                "overlap": {"type": "integer", "default": 80},
+            },
+            "required": ["path"],
+        },
+    },
 }
 
 

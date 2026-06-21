@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   ReactFlow,
   Background,
@@ -12,11 +12,11 @@ import '@xyflow/react/dist/style.css';
 import clsx from 'clsx';
 import { X } from 'lucide-react';
 import { useExecutorStore } from '../store/executorStore';
-import type { DAGNode } from '../types/executor';
+import type { DAGNode, ExecutorEvent } from '../types/executor';
 
 // ── Status colours ────────────────────────────────────────────────────────────
 const STATUS_COLOR: Record<DAGNode['status'], string> = {
-  pending:  'border-slate-600 bg-slate-800 text-slate-400',
+  pending:  'border-[var(--border)] bg-[var(--bg-soft)] text-[var(--text-dim)]',
   running:  'border-violet-500 bg-violet-900/40 text-violet-300 shadow-[0_0_12px_rgba(139,92,246,0.4)]',
   complete: 'border-emerald-500 bg-emerald-900/30 text-emerald-300',
   failed:   'border-red-500 bg-red-900/30 text-red-300',
@@ -31,7 +31,7 @@ const STATUS_DOT: Record<DAGNode['status'], string> = {
 
 // ── Custom node renderer ───────────────────────────────────────────────────────
 function SkillNode({ data }: NodeProps) {
-  const node = data as DAGNode & { onClick?: () => void };
+  const node = data as unknown as DAGNode & { onClick?: () => void };
   return (
     <div
       onClick={node.onClick}
@@ -60,8 +60,8 @@ function SkillNode({ data }: NodeProps) {
 const nodeTypes = { skillNode: SkillNode };
 
 // ── Node detail panel ─────────────────────────────────────────────────────────
-function NodeDetail({ node, onClose }: { node: DAGNode; onClose: () => void }) {
-  const eventLog = useExecutorStore((s) => s.eventLog);
+function NodeDetail({ node, events, onClose }: { node: DAGNode; events: ExecutorEvent[]; onClose: () => void }) {
+  const eventLog = events as { type: string; node_id?: string; timestamp?: number }[];
   const startedEvent = eventLog.find(
     (e) => e.type === 'node_started' && 'node_id' in e && e.node_id === node.id,
   );
@@ -70,13 +70,13 @@ function NodeDetail({ node, onClose }: { node: DAGNode; onClose: () => void }) {
   );
 
   return (
-    <div className="absolute right-0 top-0 bottom-0 w-80 bg-slate-900 border-l border-slate-700 z-10 flex flex-col text-xs overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700 flex-shrink-0">
+    <div className="absolute right-0 top-0 bottom-0 w-80 bg-[var(--bg-elev)] border-l border-[var(--border)] z-10 flex flex-col text-xs overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border)] flex-shrink-0">
         <div>
-          <p className="font-mono font-semibold text-slate-200">{node.skill_name}</p>
-          <p className="text-[10px] text-slate-500 font-mono">{node.id}</p>
+          <p className="font-mono font-semibold text-[var(--text-main)]">{node.skill_name}</p>
+          <p className="text-[10px] text-[var(--text-faint)] font-mono">{node.id}</p>
         </div>
-        <button onClick={onClose} className="text-slate-500 hover:text-slate-300">
+        <button onClick={onClose} className="text-[var(--text-faint)] hover:text-[var(--text-main)]">
           <X size={14} />
         </button>
       </div>
@@ -84,7 +84,7 @@ function NodeDetail({ node, onClose }: { node: DAGNode; onClose: () => void }) {
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {/* Status */}
         <section>
-          <p className="text-slate-500 uppercase tracking-wider text-[10px] mb-1">Status</p>
+          <p className="text-[var(--text-faint)] uppercase tracking-wider text-[10px] mb-1">Status</p>
           <span className={clsx(
             'px-2 py-0.5 rounded-md font-mono text-[11px]',
             node.status === 'complete' ? 'bg-emerald-900/40 text-emerald-300' :
@@ -93,19 +93,19 @@ function NodeDetail({ node, onClose }: { node: DAGNode; onClose: () => void }) {
             'bg-slate-800 text-slate-400'
           )}>{node.status}</span>
           {node.duration_s !== undefined && (
-            <span className="ml-2 text-slate-500">{node.duration_s.toFixed(2)}s</span>
+            <span className="ml-2 text-[var(--text-faint)]">{node.duration_s.toFixed(2)}s</span>
           )}
         </section>
 
         {/* Inputs (upstream dependencies) */}
         <section>
-          <p className="text-slate-500 uppercase tracking-wider text-[10px] mb-1">Inputs (Dependencies)</p>
+          <p className="text-[var(--text-faint)] uppercase tracking-wider text-[10px] mb-1">Inputs (Dependencies)</p>
           {node.inputs.length === 0 ? (
-            <p className="text-slate-600 italic">none</p>
+            <p className="text-[var(--text-faint)] italic">none</p>
           ) : (
             <ul className="space-y-1">
               {node.inputs.map((inp, i) => (
-                <li key={i} className="font-mono bg-slate-800 px-2 py-1 rounded text-slate-300">{inp}</li>
+                <li key={i} className="font-mono bg-[var(--bg-soft)] px-2 py-1 rounded text-[var(--text-main)]">{inp}</li>
               ))}
             </ul>
           )}
@@ -114,14 +114,14 @@ function NodeDetail({ node, onClose }: { node: DAGNode; onClose: () => void }) {
         {/* Tokens */}
         {(node.tokens_in !== undefined || node.tokens_out !== undefined) && (
           <section>
-            <p className="text-slate-500 uppercase tracking-wider text-[10px] mb-1">Token Usage</p>
+            <p className="text-[var(--text-faint)] uppercase tracking-wider text-[10px] mb-1">Token Usage</p>
             <div className="grid grid-cols-2 gap-2">
-              <div className="bg-slate-800 rounded-lg p-2">
-                <p className="text-[9px] text-slate-500">Input</p>
+              <div className="bg-[var(--bg-soft)] rounded-lg p-2">
+                <p className="text-[9px] text-[var(--text-faint)]">Input</p>
                 <p className="text-blue-400 font-mono">{(node.tokens_in ?? 0).toLocaleString()}</p>
               </div>
-              <div className="bg-slate-800 rounded-lg p-2">
-                <p className="text-[9px] text-slate-500">Output</p>
+              <div className="bg-[var(--bg-soft)] rounded-lg p-2">
+                <p className="text-[9px] text-[var(--text-faint)]">Output</p>
                 <p className="text-emerald-400 font-mono">{(node.tokens_out ?? 0).toLocaleString()}</p>
               </div>
             </div>
@@ -131,7 +131,7 @@ function NodeDetail({ node, onClose }: { node: DAGNode; onClose: () => void }) {
         {/* Error */}
         {node.error && (
           <section>
-            <p className="text-slate-500 uppercase tracking-wider text-[10px] mb-1">Error</p>
+            <p className="text-[var(--text-faint)] uppercase tracking-wider text-[10px] mb-1">Error</p>
             <p className="bg-red-900/30 border border-red-800 rounded-lg p-2 text-red-300 font-mono leading-relaxed">{node.error}</p>
           </section>
         )}
@@ -139,8 +139,8 @@ function NodeDetail({ node, onClose }: { node: DAGNode; onClose: () => void }) {
         {/* Timeline */}
         {startedEvent && (
           <section>
-            <p className="text-slate-500 uppercase tracking-wider text-[10px] mb-1">Timeline</p>
-            <div className="space-y-1 font-mono text-[10px] text-slate-400">
+            <p className="text-[var(--text-faint)] uppercase tracking-wider text-[10px] mb-1">Timeline</p>
+            <div className="space-y-1 font-mono text-[10px] text-[var(--text-dim)]">
               {'timestamp' in startedEvent && <p>Started: {new Date((startedEvent as any).timestamp * 1000).toLocaleTimeString()}</p>}
               {completedEvent && 'timestamp' in completedEvent && (<p>Completed: {new Date((completedEvent as any).timestamp * 1000).toLocaleTimeString()}</p>)}
             </div>
@@ -163,22 +163,19 @@ function buildLayout(
     .map((id) => dagNodes.find((n) => n.id === id))
     .filter(Boolean) as DAGNode[];
 
-  // Build implicit chain: if node has no n: inputs, its implicit predecessor
-  // is the previous node in creation order (planner → formatter case).
   const rows: DAGNode[][] = [];
+  const rootId = orderedNodes[0]?.id;
 
   orderedNodes.forEach((n, idx) => {
     const explicitInputs = n.inputs.filter((i) => i.startsWith('n:'));
     if (explicitInputs.length === 0) {
-      // Root-level: row 0 for first node, else row after implicit predecessor
       if (idx === 0) {
         if (!rows[0]) rows[0] = [];
         rows[0].push(n);
       } else {
-        // Place one row below the previous node
-        const prevId = orderedNodes[idx - 1]?.id;
-        const prevRow = prevId ? rows.findIndex((r) => r.some((rn) => rn.id === prevId)) : 0;
-        const targetRow = (prevRow >= 0 ? prevRow : 0) + 1;
+        // Empty inputs are the planner's fan-out signal. They are not a
+        // dependency on the previous sibling, so render them as peers.
+        const targetRow = 1;
         if (!rows[targetRow]) rows[targetRow] = [];
         rows[targetRow].push(n);
       }
@@ -229,16 +226,16 @@ function buildLayout(
           label: 'data',
         });
       });
-    } else if (idx > 0) {
-      // Implicit sequential edge from previous node
-      const prevId = orderedNodes[idx - 1].id;
+    } else if (idx > 0 && rootId) {
+      // Visual spawn edge only: empty-input nodes can run as the same ready
+      // batch after the planner completes. Do not draw sibling seq links.
       rfEdges.push({
-        id: `${prevId}~~>${n.id}`,
-        source: prevId,
+        id: `${rootId}~~>${n.id}`,
+        source: rootId,
         target: n.id,
         animated: n.status === 'running',
         style: { stroke: '#475569', strokeWidth: 1.5, strokeDasharray: '4 3' },
-        label: 'seq',
+        label: 'spawn',
       });
     }
   });
@@ -246,9 +243,29 @@ function buildLayout(
   return { rfNodes, rfEdges };
 }
 export function GraphView() {
-  const nodes = useExecutorStore((s) => s.nodes);
-  const nodeOrder = useExecutorStore((s) => s.nodeOrder);
+  const liveNodes = useExecutorStore((s) => s.nodes);
+  const liveNodeOrder = useExecutorStore((s) => s.nodeOrder);
+  const liveEvents = useExecutorStore((s) => s.eventLog);
+  const currentRun = useExecutorStore((s) => s.currentRun);
+  const runHistory = useExecutorStore((s) => s.runHistory);
+  const selectedRunId = useExecutorStore((s) => s.selectedRunId);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+
+  const selectedRun = useMemo(() => {
+    if (!selectedRunId) return null;
+    if (currentRun?.id === selectedRunId) return currentRun;
+    return runHistory.find((run) => run.id === selectedRunId) ?? null;
+  }, [currentRun, runHistory, selectedRunId]);
+
+  const nodes = selectedRun?.id === currentRun?.id
+    ? liveNodes
+    : selectedRun?.graphNodes ?? liveNodes;
+  const nodeOrder = selectedRun?.id === currentRun?.id
+    ? liveNodeOrder
+    : selectedRun?.graphNodeOrder ?? liveNodeOrder;
+  const graphEvents = selectedRun?.id === currentRun?.id
+    ? liveEvents
+    : selectedRun?.events ?? liveEvents;
 
   const dagNodes = useMemo(() => Object.values(nodes), [nodes]);
   const { rfNodes, rfEdges } = useMemo(
@@ -260,7 +277,7 @@ export function GraphView() {
 
   if (dagNodes.length === 0) {
     return (
-      <div className="flex items-center justify-center h-full text-slate-600 text-sm">
+      <div className="flex items-center justify-center h-full text-[var(--text-faint)] text-sm">
         DAG graph appears here during execution
       </div>
     );
@@ -277,22 +294,38 @@ export function GraphView() {
         proOptions={{ hideAttribution: true }}
         onPaneClick={() => setSelectedNodeId(null)}
       >
-        <Background color="#1e2030" gap={20} />
+        <Background color="var(--border)" gap={20} />
         <Controls />
         <MiniMap nodeColor={(n) => {
-          const status = (n.data as DAGNode).status;
+          const status = (n.data as unknown as DAGNode).status;
           return status === 'complete' ? '#10b981' : status === 'running' ? '#8b5cf6' : status === 'failed' ? '#ef4444' : '#475569';
+        }}
+        maskColor="rgba(7, 11, 22, 0.65)"
+        nodeStrokeColor="rgba(228, 235, 255, 0.55)"
+        nodeBorderRadius={10}
+        pannable
+        zoomable
+        style={{
+          background: 'var(--bg-elev)',
+          border: '1px solid var(--border)',
+          borderRadius: 8,
         }} />
       </ReactFlow>
 
       {selectedNode && (
-        <NodeDetail node={selectedNode} onClose={() => setSelectedNodeId(null)} />
+        <NodeDetail node={selectedNode} events={graphEvents} onClose={() => setSelectedNodeId(null)} />
       )}
 
-      <div className="absolute bottom-2 left-2 flex gap-3 text-[10px] text-slate-500 pointer-events-none">
+      {selectedRun && (
+        <div className="absolute top-2 left-2 max-w-[45%] rounded-md border border-[var(--border)] bg-[var(--bg-elev)]/88 px-2 py-1 text-[10px] text-[var(--text-dim)] pointer-events-none">
+          <span className="text-[var(--brand)]">selected query:</span> {selectedRun.query.slice(0, 90)}{selectedRun.query.length > 90 ? '...' : ''}
+        </div>
+      )}
+
+      <div className="absolute bottom-2 left-2 flex gap-3 text-[10px] text-[var(--text-faint)] pointer-events-none">
         <span className="flex items-center gap-1"><span className="w-4 h-px bg-violet-500 inline-block" /> data edge</span>
-        <span className="flex items-center gap-1"><span className="w-4 h-px bg-slate-500 inline-block border-dashed border-t border-slate-500" /> seq edge</span>
-        <span className="text-slate-600">click node to inspect</span>
+        <span className="flex items-center gap-1"><span className="w-4 h-px bg-[var(--text-faint)] inline-block border-dashed border-t border-[var(--text-faint)]" /> spawn edge</span>
+        <span className="text-[var(--text-faint)]">click node to inspect</span>
       </div>
     </div>
   );

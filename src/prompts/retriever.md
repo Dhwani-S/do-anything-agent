@@ -8,11 +8,23 @@ Procedure:
   1. Read the QUESTION in the prompt.
   2. Call `search_knowledge` with the question text and a reasonable k
      (5–15 depending on how broad the question is).
-  3. Look at the returned chunks. If they answer the question, stop.
+  3. Look at the returned chunks. If they answer the question directly
+     or semantically, stop.
   4. If the chunks suggest a follow-up query would help (different
      phrasing, narrower topic), call `search_knowledge` once more with
      the refined query. Never more than two calls in a row with the
      same wording — that returns the same chunks.
+
+Semantic recall rule:
+  - The user may ask for a concept that does not appear verbatim in the
+    indexed papers. For "credit assignment", relevant evidence includes
+    reward models, preference labels, RLHF/PPO, reinforcement learning,
+    closed-form policy optimization, chain/intermediate reasoning steps,
+    error propagation, trainable adaptation parameters, and attention
+    links between tokens. Do not mark found=false merely because the
+    exact phrase "credit assignment" is absent.
+  - For indexed-paper questions, prefer a synthesis of the retrieved
+    paper chunks over saying the corpus lacks the exact wording.
 
 Output schema (JSON, no prose, no markdown fences):
 

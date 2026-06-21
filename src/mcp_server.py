@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import threading
 from datetime import datetime
 from pathlib import Path
@@ -314,12 +315,28 @@ def edit_file(path: str, find: str, replace: str, replace_all: bool = False) -> 
 
 # ── document indexing (Session 7) ───────────────────────────────────────────
 
+def _clean_index_text(text: str) -> str:
+    """Remove common arXiv page chrome when a saved paper page includes it."""
+    title_match = re.search(r"^#\s+Title:(.+)$", text, flags=re.MULTILINE)
+    abstract_match = re.search(r"^>\s*Abstract:(.+)$", text, flags=re.MULTILINE)
+    if title_match and abstract_match:
+        return (
+            f"Title: {title_match.group(1).strip()}\n\n"
+            f"Abstract: {abstract_match.group(1).strip()}"
+        )
+    return text
+
 def _read_for_index(path: str) -> tuple[str, str]:
     """Return (content, source_label) for an indexable file or artifact."""
     if path.startswith("art:"):
-        return _artifacts.get_bytes(path).decode("utf-8", errors="replace"), path
-    p = _safe(path)
-    return p.read_text(encoding="utf-8"), f"sandbox:{path}"
+        return _clean_index_text(_artifacts.get_bytes(path).decode("utf-8", errors="replace")), path
+    normalised = path.replace("\\", "/")
+    for prefix in ("src/sandbox/", "sandbox/"):
+        if normalised.startswith(prefix):
+            normalised = normalised[len(prefix):]
+            break
+    p = _safe(normalised)
+    return _clean_index_text(p.read_text(encoding="utf-8")), f"sandbox:{normalised}"
 
 
 def _chunk_text(text: str, size: int = 400, overlap: int = 80) -> list[str]:

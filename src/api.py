@@ -15,7 +15,7 @@ from typing import Callable
 # Add src to path if not already there (for module execution)
 sys.path.insert(0, str(Path(__file__).parent))
 
-from fastapi import FastAPI, WebSocket, Query
+from fastapi import FastAPI, WebSocket, Query, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
 from flow import Executor
@@ -103,15 +103,31 @@ async def websocket_execute(
         result = await executor_task
         print(f"[api] executor completed: {result[:100]}")
 
+    except WebSocketDisconnect:
+        print("[api] client disconnected; cancelling executor")
     except Exception as e:
         print(f"[api] error: {e}")
-        await websocket.send_json({
-            "type": "error",
-            "message": str(e),
-            "timestamp": time.time(),
-        })
+        try:
+            await websocket.send_json({
+                "type": "error",
+                "message": str(e),
+                "timestamp": time.time(),
+            })
+        except Exception:
+            pass
     finally:
-        await websocket.close()
+        if not executor_task.done():
+            executor_task.cancel()
+            try:
+                await executor_task
+            except asyncio.CancelledError:
+                print("[api] executor task cancelled")
+            except Exception as e:
+                print(f"[api] executor cancelled with error: {e}")
+        try:
+            await websocket.close()
+        except Exception:
+            pass
 
 
 if __name__ == "__main__":

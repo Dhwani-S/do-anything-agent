@@ -103,6 +103,7 @@ export interface ChatMessage {
   id: string;
   role: MessageRole;
   content: string;
+  run_id?: string;
   session_id?: string;
   timestamp: number;
   // Live status for in-progress messages

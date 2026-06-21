@@ -20,7 +20,7 @@ export function TokenTracker() {
       </div>
 
       {sessionId && (
-        <p className="text-[10px] text-slate-600 font-mono">session: {sessionId}</p>
+        <p className="text-[10px] text-[var(--text-faint)] font-mono">session: {sessionId}</p>
       )}
 
       {/* Per-node breakdown */}
@@ -40,17 +40,17 @@ export function TokenTracker() {
                       ? 'text-violet-400'
                       : n.status === 'failed'
                       ? 'text-red-400'
-                      : 'text-slate-500'
+                      : 'text-[var(--text-faint)]'
                   }
                 >
                   ●
                 </span>
-                <span className="font-mono text-slate-400 w-16 truncate">{n.skill_name}</span>
-                <span className="text-slate-500 tabular-nums">
+                <span className="font-mono text-[var(--text-dim)] w-16 truncate">{n.skill_name}</span>
+                <span className="text-[var(--text-faint)] tabular-nums">
                   {n.duration_s !== undefined ? `${n.duration_s.toFixed(1)}s` : '…'}
                 </span>
                 {(n.tokens_in !== undefined || n.tokens_out !== undefined) && (
-                  <span className="text-slate-600 tabular-nums text-[10px]">
+                  <span className="text-[var(--text-faint)] tabular-nums text-[10px]">
                     {n.tokens_in ?? 0}↑ {n.tokens_out ?? 0}↓
                   </span>
                 )}
@@ -61,7 +61,7 @@ export function TokenTracker() {
       )}
 
       {nodeList.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-8 text-slate-600 text-sm gap-2">
+        <div className="flex flex-col items-center justify-center py-8 text-[var(--text-faint)] text-sm gap-2">
           <Zap size={24} />
           <span>Token counts appear during execution</span>
         </div>
@@ -72,8 +72,8 @@ export function TokenTracker() {
 
 function Stat({ label, value, color }: { label: string; value: number; color: string }) {
   return (
-    <div className="bg-slate-800/60 border border-slate-700 rounded-xl p-3">
-      <p className="text-[10px] text-slate-500 uppercase tracking-wider">{label}</p>
+    <div className="bg-[var(--bg-soft)] border border-[var(--border)] rounded-xl p-3">
+      <p className="text-[10px] text-[var(--text-faint)] uppercase tracking-wider">{label}</p>
       <p className={`text-2xl font-bold tabular-nums mt-0.5 ${color}`}>{value.toLocaleString()}</p>
     </div>
   );

@@ -14,6 +14,44 @@ interface TokenTotals {
   out: number;
 }
 
+type ThemeMode = 'dark' | 'light';
+type RunStatus = 'running' | 'complete' | 'failed' | 'cancelled';
+
+interface RunStepMetric {
+  nodeId: string;
+  skillName: string;
+  status: DAGNode['status'];
+  startedAt?: number;
+  completedAt?: number;
+  durationS?: number;
+  tokensIn: number;
+  tokensOut: number;
+  memoryHits: number;
+  error?: string;
+}
+
+interface QueryRun {
+  id: string;
+  query: string;
+  status: RunStatus;
+  startedAt: number;
+  endedAt?: number;
+  responseTimeMs?: number;
+  totalTimeS?: number;
+  sessionId?: string | null;
+  tokensIn: number;
+  tokensOut: number;
+  memoryHits: number;
+  nodeCreated: number;
+  nodeCompleted: number;
+  nodeFailed: number;
+  steps: Record<string, RunStepMetric>;
+  graphNodes: Record<string, DAGNode>;
+  graphNodeOrder: string[];
+  events: ExecutorEvent[];
+  memoryHitsSnapshot: MemoryHitEvent[];
+}
+
 interface ExecutorState {
   // Chat
   messages: ChatMessage[];
@@ -48,9 +86,27 @@ interface ExecutorState {
   sessionId: string | null;
   setSessionId: (id: string | null) => void;
 
+  // Query analytics
+  currentRun: QueryRun | null;
+  runHistory: QueryRun[];
+  selectedRunId: string | null;
+  selectRun: (runId: string | null) => void;
+  startRun: (query: string, runId: string) => void;
+  trackEvent: (e: ExecutorEvent) => void;
+  endRun: (status: RunStatus, details?: {
+    sessionId?: string | null;
+    totalTimeS?: number;
+    responseTimeMs?: number;
+  }) => void;
+
   // Developer mode toggle
   devMode: boolean;
   toggleDevMode: () => void;
+
+  // Theme
+  theme: ThemeMode;
+  setTheme: (mode: ThemeMode) => void;
+  toggleTheme: () => void;
 
   // Connection state
   isRunning: boolean;
@@ -139,9 +195,137 @@ export const useExecutorStore = create<ExecutorState>()(
   sessionId: null,
   setSessionId: (id) => set({ sessionId: id }),
 
+  // ── Query analytics ──────────────────────────────────────────────────────
+  currentRun: null,
+  runHistory: [],
+  selectedRunId: null,
+  selectRun: (runId) => set({ selectedRunId: runId }),
+  startRun: (query, runId) =>
+    set({
+      currentRun: {
+        id: runId,
+        query,
+        status: 'running',
+        startedAt: Date.now(),
+        tokensIn: 0,
+        tokensOut: 0,
+        memoryHits: 0,
+        nodeCreated: 0,
+        nodeCompleted: 0,
+        nodeFailed: 0,
+        steps: {},
+        graphNodes: {},
+        graphNodeOrder: [],
+        events: [],
+        memoryHitsSnapshot: [],
+      },
+      selectedRunId: runId,
+    }),
+  trackEvent: (event) =>
+    set((s) => {
+      if (!s.currentRun) return {};
+
+      const run = {
+        ...s.currentRun,
+        steps: { ...s.currentRun.steps },
+        graphNodes: s.nodes,
+        graphNodeOrder: s.nodeOrder,
+        events: s.eventLog,
+        memoryHitsSnapshot: s.memoryHits,
+      };
+
+      const ensureStep = (nodeId: string, skillName = 'unknown'): RunStepMetric => {
+        if (!run.steps[nodeId]) {
+          run.steps[nodeId] = {
+            nodeId,
+            skillName,
+            status: 'pending',
+            tokensIn: 0,
+            tokensOut: 0,
+            memoryHits: 0,
+          };
+        }
+        return run.steps[nodeId];
+      };
+
+      switch (event.type) {
+        case 'node_created': {
+          run.nodeCreated += 1;
+          const step = ensureStep(event.node_id, event.skill_name);
+          step.skillName = event.skill_name;
+          break;
+        }
+        case 'node_started': {
+          const step = ensureStep(event.node_id, event.skill_name);
+          step.skillName = event.skill_name;
+          step.status = 'running';
+          step.startedAt = event.timestamp * 1000;
+          break;
+        }
+        case 'node_completed': {
+          run.nodeCompleted += 1;
+          if (event.status === 'failed') run.nodeFailed += 1;
+          run.tokensIn += event.tokens_in;
+          run.tokensOut += event.tokens_out;
+
+          const step = ensureStep(event.node_id, event.skill_name);
+          step.skillName = event.skill_name;
+          step.status = event.status;
+          step.durationS = event.duration_s;
+          step.tokensIn += event.tokens_in;
+          step.tokensOut += event.tokens_out;
+          step.completedAt = event.timestamp * 1000;
+          step.error = event.error ?? undefined;
+          break;
+        }
+        case 'memory_hit': {
+          run.memoryHits += 1;
+          const step = ensureStep(event.node_id);
+          step.memoryHits += 1;
+          break;
+        }
+        default:
+          break;
+      }
+
+      return { currentRun: run };
+    }),
+  endRun: (status, details) =>
+    set((s) => {
+      if (!s.currentRun) return {};
+
+      const endedAt = Date.now();
+      const completedRun: QueryRun = {
+        ...s.currentRun,
+        status,
+        endedAt,
+        sessionId: details?.sessionId ?? s.currentRun.sessionId ?? s.sessionId,
+        totalTimeS: details?.totalTimeS,
+        graphNodes: s.nodes,
+        graphNodeOrder: s.nodeOrder,
+        events: s.eventLog,
+        memoryHitsSnapshot: s.memoryHits,
+        responseTimeMs:
+          details?.responseTimeMs
+          ?? (details?.totalTimeS !== undefined ? Math.round(details.totalTimeS * 1000) : endedAt - s.currentRun.startedAt),
+      };
+
+      const withoutCurrent = s.runHistory.filter((r) => r.id !== completedRun.id);
+
+      return {
+        currentRun: completedRun,
+        runHistory: [...withoutCurrent, completedRun].slice(-40),
+      };
+    }),
+
   // ── Dev mode ─────────────────────────────────────────────────────────────
   devMode: false,
   toggleDevMode: () => set((s) => ({ devMode: !s.devMode })),
+
+  // ── Theme ────────────────────────────────────────────────────────────────
+  theme: 'dark',
+  setTheme: (mode) => set({ theme: mode }),
+  toggleTheme: () => set((s) => ({ theme: s.theme === 'dark' ? 'light' : 'dark' })),
 
   // ── Running state ────────────────────────────────────────────────────────
   isRunning: false,
@@ -163,12 +347,16 @@ export const useExecutorStore = create<ExecutorState>()(
       eventLog: state.eventLog,
       sessionId: state.sessionId,
       devMode: state.devMode,
+      currentRun: state.currentRun,
+      runHistory: state.runHistory,
+      selectedRunId: state.selectedRunId,
+      theme: state.theme,
     }),
-    onRehydrateStorage: () => (_state, error) => {
-      set({
-        hasHydrated: true,
-        restoredFromStorage: !error && hadStoredSnapshot,
-      });
+    onRehydrateStorage: () => (state, error) => {
+      if (state) {
+        state.hasHydrated = true;
+        state.restoredFromStorage = !error && hadStoredSnapshot;
+      }
     },
   },
 ));

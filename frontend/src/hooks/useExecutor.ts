@@ -18,12 +18,15 @@ export function useExecutor() {
       store.clearEventLog();
       store.resetTokens();
       store.setRunning(true);
+      const runId = crypto.randomUUID();
+      store.startRun(query, runId);
 
       // Add user message to chat
       const userMsg = {
         id: crypto.randomUUID(),
         role: 'user' as const,
         content: query,
+        run_id: runId,
         timestamp: Date.now(),
       };
       store.addMessage(userMsg);
@@ -33,6 +36,7 @@ export function useExecutor() {
         id: crypto.randomUUID(),
         role: 'assistant' as const,
         content: '',
+        run_id: runId,
         streaming: true,
         timestamp: Date.now(),
       };
@@ -49,6 +53,7 @@ export function useExecutor() {
       ws.onmessage = (evt) => {
         const event: ExecutorEvent = JSON.parse(evt.data);
         store.pushEvent(event);
+        store.trackEvent(event);
 
         switch (event.type) {
           case 'node_created':
@@ -82,6 +87,11 @@ export function useExecutor() {
           case 'executor_end': {
             store.setSessionId(event.session_id);
             store.finishLastAssistantMessage(event.final_answer);
+            store.endRun('complete', {
+              sessionId: event.session_id,
+              totalTimeS: event.total_time_s,
+              responseTimeMs: Math.round(event.total_time_s * 1000),
+            });
             store.setRunning(false);
             ws.close();
             break;
@@ -89,6 +99,7 @@ export function useExecutor() {
 
           case 'error':
             store.finishLastAssistantMessage(`⚠️ Error: ${event.message}`);
+            store.endRun('failed');
             store.setRunning(false);
             break;
         }
@@ -98,6 +109,7 @@ export function useExecutor() {
         store.finishLastAssistantMessage(
           '⚠️ Connection error — is the backend running on port 8000?',
         );
+        store.endRun('failed');
         store.setRunning(false);
       };
 
@@ -110,6 +122,9 @@ export function useExecutor() {
 
   const cancel = useCallback(() => {
     wsRef.current?.close();
+    wsRef.current = null;
+    store.finishLastAssistantMessage('Stopped by user. The running WebSocket was closed.');
+    store.endRun('cancelled');
     store.setRunning(false);
   }, [store]);
 

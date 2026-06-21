@@ -39,6 +39,13 @@ retriever:
   max_tokens: 1200
   description: Searches Memory and the FAISS index for material relevant to a query.
 
+indexer:
+  prompt: prompts/indexer.md
+  tools_allowed: [index_document]
+  temperature: 0.0         # indexing is an exact file operation
+  max_tokens: 900
+  description: Indexes sandbox documents into Memory/FAISS via the real MCP index_document tool.
+
 researcher:
   prompt: prompts/researcher.md
   tools_allowed: [web_search, fetch_url]
