@@ -1,0 +1,181 @@
+EAGV3 — Assignment Test Queries
+=================================
+All queries referenced across Sessions 6, 7, and 8 for testing and
+assignment submission. Run each against the agent and verify the output
+matches the expected behaviour described below.
+
+────────────────────────────────────────────────────────────────────────
+SESSION 6 — Four-Role Agent (Perception / Decision / Memory / Action)
+────────────────────────────────────────────────────────────────────────
+
+Query A  |  Shannon Wikipedia  (artifact attach path)
+─────────────────────────────────────────────────────
+  "Fetch https://en.wikipedia.org/wiki/Claude_Shannon and tell me his
+   birth date, death date, and three key contributions to information
+   theory."
+
+Expected: Birth date April 30 1916, death date February 24 2001, plus
+three contributions (Mathematical Theory of Communication, the bit/entropy,
+the Shannon limit). Iteration count: 3. Tests the artifact-attach loop —
+Perception must identify that the extraction goal needs the fetched bytes
+and set attach_artifact_id so Decision receives the full 250 KB page.
+
+
+Query B  |  Tokyo activities with weather  (multi-goal + memory carryover)
+───────────────────────────────────────────────────────────────────────────
+  "Find 3 family-friendly things to do in Tokyo this weekend.
+   Check Saturday's weather forecast there and tell me which one
+   is most appropriate."
+
+Expected: Three activities listed, Saturday forecast fetched, one activity
+selected that matches the weather (e.g. indoor if rainy). Tests multi-goal
+decomposition (3 goals) and memory carryover: the weather tool_outcome must
+be visible to Decision on the recommendation iteration.
+
+
+Query C  |  Mom's birthday  (durable memory across two runs)
+─────────────────────────────────────────────────────────────
+  Run 1:
+    "My mom's birthday is 15 May 2026. Remember that and give me a
+     calendar reminder for two weeks before and on the day."
+
+  Run 2 (same state/ directory, new process):
+    "When is mom's birthday?"
+
+Expected Run 1: reminder files created in sandbox, fact persisted in
+state/memory.json with kind="fact" and date extracted.
+Expected Run 2: agent reads the fact from memory and answers without a
+web search. Iteration count: 2.
+
+
+Query D  |  Asyncio research  (multi-source synthesis)
+───────────────────────────────────────────────────────
+  "Search for 'Python asyncio best practices', read the top 3 results,
+   and give me a short numbered list of the advice they agree on."
+
+Expected: Numbered list of at least 3 common recommendations (e.g.
+use asyncio.run as entry point, prefer TaskGroup, avoid blocking calls
+in coroutines). Tests multi-artifact attachment and synthesis goal.
+
+
+────────────────────────────────────────────────────────────────────────
+SESSION 7 — RAG Extension (FAISS vector retrieval + indexed corpus)
+────────────────────────────────────────────────────────────────────────
+S7 uses the same four base queries from S6. The additional work is:
+
+Step 1  |  Index the research paper corpus
+  Run index_document on each paper in src/sandbox/papers/:
+    attention.md, cot.md, dpo.md, lora.md, react.md
+
+Step 2  |  Synonym-recall vector query  (this query FAILS on S6 keyword search)
+  "How do these papers handle the credit assignment problem?"
+
+Expected: FAISS returns semantically relevant chunks from papers that
+discuss backpropagation through reasoning steps and reward shaping even
+though the phrase "credit assignment" does not appear verbatim. Tests
+that vector retrieval is load-bearing (keyword fallback returns nothing).
+
+Step 3  |  Cross-paper synthesis via search_knowledge
+  "What optimisation technique do LoRA and DPO have in common compared
+   to full fine-tuning?"
+
+Expected: Agent uses search_knowledge MCP tool rather than web search,
+retrieves chunks from lora.md and dpo.md, synthesises the answer.
+
+
+────────────────────────────────────────────────────────────────────────
+SESSION 8 — DAG Orchestrator (7-part assignment)
+────────────────────────────────────────────────────────────────────────
+
+Part 1  |  Base queries (smoke test — must ALL pass)
+  "hello"
+  "What is the capital of France?"
+  "Tell me about Claude Shannon's contributions to information theory."
+    (rerun of Query A — tests DAG path replaces S6 loop)
+  "Find 3 family-friendly activities in Tokyo with weather context."
+    (rerun of Query B — tests multi-node sequential plan)
+  "When is mom's birthday?"
+    (rerun of Query C Run 2 — tests memory persists across architectures)
+
+Expected: All five pass. Planner decomposes each into the minimum viable
+DAG; Formatter produces the terminal answer. No parallel fan-out needed.
+
+
+Part 2  |  Parallel fan-out  (3 researcher nodes run concurrently)
+  "Find the populations of London, Paris, and Berlin and tell me
+   which two are closest in size."
+
+Expected: Planner emits three researcher nodes (one per city) with no
+data dependencies between them. All three run under asyncio.gather.
+Formatter receives all three results. Total wall time < 30s.
+Verify in the Event Log tab: three node_started events appear before
+any node_completed event.
+
+
+Part 3  |  Critic pass/fail + recovery
+  "Write a haiku about artificial intelligence. It must be exactly
+   5-7-5 syllables. Verify the syllable count and reject if wrong."
+
+Expected: Planner inserts a critic node between the writer node and the
+formatter. If the critic fails the haiku, the orchestrator re-plans and
+a new writer node is added. The final answer satisfies the 5-7-5
+constraint. Verify critic node appears in the DAG graph.
+
+
+Part 4  |  Coder skill + SandboxExecutor
+  "Write Python code to compute the first 20 Fibonacci numbers and
+   print them as a comma-separated list. Run it and show me the output."
+
+Expected: Planner emits a coder node whose internal_successors wire to a
+sandbox_executor node. Coder produces valid Python; SandboxExecutor runs
+it; Formatter reports the printed output. Code must include ok/answer/
+evidence keys in the final stdout JSON per the coder prompt contract.
+
+
+Part 5  |  New skill  (add at least one skill beyond the base catalogue)
+  Test query depends on the skill you add.
+
+Recommended new skill: scorer
+  "Rate the following three summaries on accuracy and conciseness
+   on a 1–10 scale and pick the best one: [A] ... [B] ... [C] ..."
+
+Expected: scorer node emits a numeric ranking; formatter produces the
+ranked list with rationale. Verify scorer appears in agent_config.yaml
+with its own prompt file and temperature setting.
+
+
+Part 6  |  YouTube demo
+  Record a 3–5 minute walkthrough showing:
+    – A parallel fan-out query running live (Part 2)
+    – Developer Mode on: DAG graph building in real time
+    – Memory Hits tab showing FAISS retrievals
+    – Event Log showing raw WebSocket events
+    – At least one node clicked to show the detail panel
+
+
+Part 7  |  README proof section
+  Add a section to README.md with:
+    – Screenshot or gif of the frontend (chat + dev panel)
+    – Output logs for Part 2 (parallel run) showing timing
+    – Output logs for Part 3 (critic recovery) showing splice
+    – Link to YouTube demo
+
+
+────────────────────────────────────────────────────────────────────────
+QUICK REFERENCE — commands to run each query
+────────────────────────────────────────────────────────────────────────
+
+CLI (no frontend):
+  .venv\Scripts\python.exe src\flow.py "<query here>"
+  .venv\Scripts\python.exe src\flow.py --resume <session-id> ""
+
+Frontend:
+  Terminal 1:  .venv\Scripts\python.exe src\api.py
+  Terminal 2:  cd frontend && npm run dev
+  Browser:     http://localhost:5173  (or 5176 if ports busy)
+
+Reset memory between attempts (S6/S7):
+  Remove-Item src\state\memory.json -ErrorAction SilentlyContinue
+
+Reset sessions between attempts (S8):
+  Remove-Item src\state\sessions\* -Recurse -ErrorAction SilentlyContinue

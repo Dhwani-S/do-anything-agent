@@ -245,61 +245,6 @@ function buildLayout(
 
   return { rfNodes, rfEdges };
 }
-      rows[targetRow].push(n);
-    }
-    placed.add(n.id);
-  });
-
-  const rfNodes = rows.flatMap((row, rowIdx) =>
-    row.map((n, colIdx) => ({
-      id: n.id,
-      type: 'skillNode',
-      position: {
-        x: colIdx * COL_W - ((row.length - 1) * COL_W) / 2 + 300,
-        y: rowIdx * ROW_H + 40,
-      },
-      data: { ...n, onClick: () => onNodeClick(n.id) },
-    })),
-  );
-
-  const rfEdges: {
-    id: string;
-    source: string;
-    target: string;
-    animated: boolean;
-    style: object;
-    label?: string;
-  }[] = [];
-
-  orderedNodes.forEach((n, idx) => {
-    const explicitInputs = n.inputs.filter((i) => i.startsWith('n:'));
-    if (explicitInputs.length > 0) {
-      explicitInputs.forEach((src) => {
-        rfEdges.push({
-          id: `${src}->${n.id}`,
-          source: src,
-          target: n.id,
-          animated: n.status === 'running',
-          style: { stroke: '#7c3aed', strokeWidth: 1.5 },
-          label: 'data',
-        });
-      });
-    } else if (idx > 0) {
-      const prevId = orderedNodes[idx - 1].id;
-      rfEdges.push({
-        id: `${prevId}~~>${n.id}`,
-        source: prevId,
-        target: n.id,
-        animated: n.status === 'running',
-        style: { stroke: '#475569', strokeWidth: 1.5, strokeDasharray: '4 3' },
-        label: 'seq',
-      });
-    }
-  });
-
-  return { rfNodes, rfEdges };
-}
-
 export function GraphView() {
   const nodes = useExecutorStore((s) => s.nodes);
   const nodeOrder = useExecutorStore((s) => s.nodeOrder);
