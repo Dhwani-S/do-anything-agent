@@ -7,6 +7,16 @@ export interface NodeCreatedEvent {
   node_id: string;
   skill_name: string;
   inputs: string[];
+  metadata: Record<string, unknown>;
+  timestamp: number;
+}
+
+export interface NodeUpdatedEvent {
+  type: 'node_updated';
+  node_id: string;
+  skill_name: string;
+  inputs: string[];
+  metadata: Record<string, unknown>;
   timestamp: number;
 }
 
@@ -26,6 +36,12 @@ export interface NodeCompletedEvent {
   tokens_in: number;
   tokens_out: number;
   error: string | null;
+  prompt: string | null;
+  output: Record<string, unknown>;
+  artifacts: string[];
+  successors: Array<Record<string, unknown>>;
+  provider: string;
+  cost: number;
   timestamp: number;
 }
 
@@ -72,6 +88,7 @@ export interface ErrorEvent {
 
 export type ExecutorEvent =
   | NodeCreatedEvent
+  | NodeUpdatedEvent
   | NodeStartedEvent
   | NodeCompletedEvent
   | MemoryHitEvent
@@ -89,10 +106,17 @@ export interface DAGNode {
   skill_name: string;
   status: NodeStatus;
   inputs: string[];
+  metadata?: Record<string, unknown>;
   duration_s?: number;
   tokens_in?: number;
   tokens_out?: number;
   error?: string;
+  prompt?: string | null;
+  output?: Record<string, unknown>;
+  artifacts?: string[];
+  successors?: Array<Record<string, unknown>>;
+  provider?: string;
+  cost?: number;
   started_at?: number;
   completed_at?: number;
 }

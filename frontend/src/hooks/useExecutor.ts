@@ -54,20 +54,19 @@ export function useExecutor() {
         const event: ExecutorEvent = JSON.parse(evt.data);
         store.pushEvent(event);
         store.trackEvent(event);
+        store.appendAssistantEvent(event);
 
         switch (event.type) {
           case 'node_created':
             store.upsertNode(event);
-            store.updateLastAssistantMessage(
-              `**Planner** created node \`${event.node_id}\` → \`${event.skill_name}\``,
-            );
+            break;
+
+          case 'node_updated':
+            store.updateNodeInputs(event);
             break;
 
           case 'node_started':
             store.setNodeStatus(event.node_id, 'running');
-            store.updateLastAssistantMessage(
-              `**Running** \`${event.skill_name}\` (${event.node_id})…`,
-            );
             break;
 
           case 'node_completed':

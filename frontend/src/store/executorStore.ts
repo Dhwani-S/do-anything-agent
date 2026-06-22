@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type {
   ExecutorEvent, DAGNode, ChatMessage, MemoryHitEvent,
-  NodeCreatedEvent, NodeCompletedEvent,
+  NodeCreatedEvent, NodeCompletedEvent, NodeUpdatedEvent,
 } from '../types/executor';
 
 const STORE_KEY = 'eagv3-executor-ui';
@@ -57,6 +57,7 @@ interface ExecutorState {
   messages: ChatMessage[];
   addMessage: (msg: ChatMessage) => void;
   updateLastAssistantMessage: (content: string, streaming?: boolean) => void;
+  appendAssistantEvent: (event: ExecutorEvent) => void;
   finishLastAssistantMessage: (content: string) => void;
 
   // DAG
@@ -64,6 +65,7 @@ interface ExecutorState {
   nodeOrder: string[];           // insertion-order for display
   setNodeStatus: (id: string, status: DAGNode['status']) => void;
   upsertNode: (event: NodeCreatedEvent) => void;
+  updateNodeInputs: (event: NodeUpdatedEvent) => void;
   completeNode: (event: NodeCompletedEvent) => void;
   resetDAG: () => void;
 
@@ -129,6 +131,19 @@ export const useExecutorStore = create<ExecutorState>()(
       if (idx >= 0) msgs[idx] = { ...msgs[idx], content, streaming };
       return { messages: msgs };
     }),
+  appendAssistantEvent: (event) =>
+    set((s) => {
+      const msgs = [...s.messages];
+      const idx = msgs.findLastIndex((m) => m.role === 'assistant');
+      if (idx >= 0) {
+        msgs[idx] = {
+          ...msgs[idx],
+          node_events: [...(msgs[idx].node_events ?? []), event].slice(-80),
+          streaming: true,
+        };
+      }
+      return { messages: msgs };
+    }),
   finishLastAssistantMessage: (content) =>
     set((s) => {
       const msgs = [...s.messages];
@@ -151,12 +166,28 @@ export const useExecutorStore = create<ExecutorState>()(
           skill_name: event.skill_name,
           status: 'pending',
           inputs: event.inputs,
+          metadata: event.metadata,
           started_at: event.timestamp,
         },
       },
       nodeOrder: s.nodeOrder.includes(event.node_id)
         ? s.nodeOrder
         : [...s.nodeOrder, event.node_id],
+    })),
+  updateNodeInputs: (event) =>
+    set((s) => ({
+      nodes: {
+        ...s.nodes,
+        [event.node_id]: {
+          ...(s.nodes[event.node_id] ?? {
+            id: event.node_id,
+            status: 'pending',
+          }),
+          skill_name: event.skill_name,
+          inputs: event.inputs,
+          metadata: event.metadata,
+        },
+      },
     })),
   completeNode: (event) =>
     set((s) => ({
@@ -169,6 +200,12 @@ export const useExecutorStore = create<ExecutorState>()(
           tokens_in: event.tokens_in,
           tokens_out: event.tokens_out,
           error: event.error ?? undefined,
+          prompt: event.prompt,
+          output: event.output,
+          artifacts: event.artifacts,
+          successors: event.successors,
+          provider: event.provider,
+          cost: event.cost,
           completed_at: event.timestamp,
         },
       },
@@ -251,6 +288,11 @@ export const useExecutorStore = create<ExecutorState>()(
       switch (event.type) {
         case 'node_created': {
           run.nodeCreated += 1;
+          const step = ensureStep(event.node_id, event.skill_name);
+          step.skillName = event.skill_name;
+          break;
+        }
+        case 'node_updated': {
           const step = ensureStep(event.node_id, event.skill_name);
           step.skillName = event.skill_name;
           break;
