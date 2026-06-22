@@ -55,12 +55,12 @@ class Skill:
     def prompt_template(self) -> str:
         if not self.prompt_path.exists():
             return f"You are the {self.name} skill. (Prompt file missing.)"
-        return self.prompt_path.read_text()
+        return self.prompt_path.read_text(encoding="utf-8")
 
 
 class SkillRegistry:
     def __init__(self):
-        cfg = yaml.safe_load(AGENT_CONFIG_PATH.read_text())
+        cfg = yaml.safe_load(AGENT_CONFIG_PATH.read_text(encoding="utf-8"))
         self._skills: dict[str, Skill] = {n: Skill(n, c) for n, c in cfg.items()}
 
     def get(self, name: str) -> Skill:

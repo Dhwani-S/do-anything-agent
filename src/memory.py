@@ -45,13 +45,14 @@ _EMBEDDABLE_KINDS = {"fact", "preference", "tool_outcome"}
 def _load() -> list[MemoryItem]:
     if not STATE_PATH.exists():
         return []
-    raw = json.loads(STATE_PATH.read_text())
+    raw = json.loads(STATE_PATH.read_text(encoding="utf-8"))
     return [MemoryItem.model_validate(r) for r in raw]
 
 
 def _save(items: list[MemoryItem]) -> None:
     STATE_PATH.write_text(
-        json.dumps([i.model_dump(mode="json") for i in items], indent=2)
+    json.dumps([i.model_dump(mode="json") for i in items], indent=2),
+    encoding="utf-8",
     )
 
 

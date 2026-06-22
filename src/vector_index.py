@@ -62,14 +62,14 @@ class VectorIndex:
     def _load(self) -> None:
         if self.index_path.exists() and self.ids_path.exists():
             self._index = faiss.read_index(str(self.index_path))
-            self._ids = json.loads(self.ids_path.read_text())
+            self._ids = json.loads(self.ids_path.read_text(encoding="utf-8"))
             self._dim = self._index.d
 
     def persist(self) -> None:
         if self._index is None:
             return
         faiss.write_index(self._index, str(self.index_path))
-        self.ids_path.write_text(json.dumps(self._ids))
+        self.ids_path.write_text(json.dumps(self._ids), encoding="utf-8")
 
     def clear(self) -> None:
         self._index = None

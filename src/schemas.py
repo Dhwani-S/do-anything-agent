@@ -148,6 +148,16 @@ class ExecutorEventNodeCreated(BaseModel):
     node_id: str
     skill_name: str
     inputs: list[str] = Field(default_factory=list)
+    metadata: dict = Field(default_factory=dict)
+    timestamp: float
+
+
+class ExecutorEventNodeUpdated(BaseModel):
+    type: Literal["node_updated"]
+    node_id: str
+    skill_name: str
+    inputs: list[str] = Field(default_factory=list)
+    metadata: dict = Field(default_factory=dict)
     timestamp: float
 
 
@@ -167,6 +177,12 @@ class ExecutorEventNodeCompleted(BaseModel):
     tokens_in: int = 0
     tokens_out: int = 0
     error: str | None = None
+    prompt: str | None = None
+    output: dict = Field(default_factory=dict)
+    artifacts: list[str] = Field(default_factory=list)
+    successors: list[dict] = Field(default_factory=list)
+    provider: str = ""
+    cost: float = 0.0
     timestamp: float
 
 
@@ -207,7 +223,7 @@ class ExecutorEventEnd(BaseModel):
 
 # Union type for all events
 ExecutorEvent = (
-    ExecutorEventNodeCreated | ExecutorEventNodeStarted | ExecutorEventNodeCompleted |
-    ExecutorEventMemoryHit | ExecutorEventToolCall | ExecutorEventCacheHit |
-    ExecutorEventEnd
+    ExecutorEventNodeCreated | ExecutorEventNodeUpdated | ExecutorEventNodeStarted |
+    ExecutorEventNodeCompleted | ExecutorEventMemoryHit | ExecutorEventToolCall |
+    ExecutorEventCacheHit | ExecutorEventEnd
 )

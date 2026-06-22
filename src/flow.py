@@ -20,16 +20,21 @@ import sys
 import time
 import uuid
 
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
+
 import networkx as nx
 
 import memory as memory_svc
 from gateway import ensure_gateway
 from persistence import SessionStore
-from recovery import handle_critic_verdict, plan_recovery
-from schemas import AgentResult, NodeState, ExecutorEventNodeCreated, ExecutorEventNodeStarted, ExecutorEventNodeCompleted, ExecutorEventMemoryHit, ExecutorEventEnd
+from recovery import build_recovery_report, handle_critic_verdict, plan_recovery, reusable_upstream_ids
+from schemas import AgentResult, NodeState, ExecutorEventNodeCreated, ExecutorEventNodeUpdated, ExecutorEventNodeStarted, ExecutorEventNodeCompleted, ExecutorEventMemoryHit, ExecutorEventEnd
 from skills import SkillRegistry, run_skill
 
 MAX_NODES = 60  # hard cap so a Planner loop cannot grow forever
+MAX_RECOVERY_PLANNERS = 2  # bound runaway graph growth after failures
 
 
 # ── Graph ────────────────────────────────────────────────────────────────────
@@ -41,6 +46,7 @@ class Graph:
     def __init__(self):
         self.g = nx.DiGraph()
         self._counter = 0
+        self._last_rewired: list[str] = []
 
     def add_node(self, skill: str, inputs: list[str], metadata: dict | None = None) -> str:
         self._counter += 1
@@ -54,6 +60,43 @@ class Graph:
 
     def mark(self, nid: str, status: str) -> None:
         self.g.nodes[nid]["status"] = status
+
+    def _set_dependency(self, child_nid: str, old_nid: str, new_nid: str) -> None:
+        inputs = self.g.nodes[child_nid].get("inputs", [])
+        if old_nid in inputs:
+            self.g.nodes[child_nid]["inputs"] = [
+                new_nid if inp == old_nid else inp
+                for inp in inputs
+            ]
+        elif new_nid not in inputs:
+            self.g.nodes[child_nid]["inputs"] = [*inputs, new_nid]
+        if self.g.has_edge(old_nid, child_nid):
+            self.g.remove_edge(old_nid, child_nid)
+        self.g.add_edge(new_nid, child_nid)
+        if child_nid not in self._last_rewired:
+            self._last_rewired.append(child_nid)
+
+    def _gate_siblings_through_explicit_critics(self) -> None:
+        """Make explicit critic siblings act as gates for shared targets.
+
+        Planner output often expresses "score, then critic, then format" as
+        sibling nodes that all depend on the scorer/coder. The runtime must
+        enforce the intended gate so a formatter cannot run if the critic is
+        still pending or failed.
+        """
+        for anchor_nid in list(self.g.nodes):
+            successors = list(self.g.successors(anchor_nid))
+            critic_ids = [
+                nid for nid in successors
+                if self.g.nodes[nid].get("skill") == "critic"
+            ]
+            if not critic_ids:
+                continue
+            for child_nid in successors:
+                if child_nid in critic_ids:
+                    continue
+                for critic_nid in critic_ids:
+                    self._set_dependency(child_nid, anchor_nid, critic_nid)
 
     def ready_nodes(self) -> list[str]:
         # A predecessor counts as "satisfied" when it is either complete or
@@ -81,6 +124,7 @@ class Graph:
         encouraged to name its nodes by label so it can reference them
         without knowing the integer ids the orchestrator will hand out."""
         added: list[str] = []
+        self._last_rewired = []
         src_def = registry.get(self.g.nodes[src_nid]["skill"])
 
         # Pass 1: add the new nodes; build a label → assigned-id map.
@@ -146,9 +190,36 @@ class Graph:
             if not raw_inputs:
                 self.g.add_edge(src_nid, new_id)
 
+        self._gate_siblings_through_explicit_critics()
+
         for child_skill in src_def.internal_successors:
             nid = self.add_node(child_skill, inputs=[src_nid])
             added.append(nid)
+
+        # Internal successors are part of the skill contract, not optional
+        # side branches. For Coder -> SandboxExecutor, any downstream node
+        # that was already waiting on the coder must wait on the sandbox
+        # result instead, otherwise Formatter/Critic can bypass execution.
+        internal_added = added[-len(src_def.internal_successors):] if src_def.internal_successors else []
+        if len(internal_added) == 1:
+            internal_nid = internal_added[0]
+            for child_nid in list(self.g.successors(src_nid)):
+                if child_nid == internal_nid:
+                    continue
+                inputs = self.g.nodes[child_nid].get("inputs", [])
+                if src_nid in inputs:
+                    self.g.nodes[child_nid]["inputs"] = [
+                        internal_nid if inp == src_nid else inp
+                        for inp in inputs
+                    ]
+                else:
+                    self.g.nodes[child_nid]["inputs"] = [*inputs, internal_nid]
+                if self.g.has_edge(src_nid, child_nid):
+                    self.g.remove_edge(src_nid, child_nid)
+                self.g.add_edge(internal_nid, child_nid)
+                self._last_rewired.append(child_nid)
+
+            self._gate_siblings_through_explicit_critics()
 
         # Critic auto-insertion: place a Critic before each newly-added
         # child so the child only runs after Critic passes.
@@ -163,6 +234,11 @@ class Graph:
                 added.append(critic_nid)
 
         return added
+
+    def consume_rewired_nodes(self) -> list[str]:
+        rewired = list(getattr(self, "_last_rewired", []))
+        self._last_rewired = []
+        return rewired
 
 
 # ── Executor ─────────────────────────────────────────────────────────────────
@@ -218,6 +294,7 @@ class Executor:
             node_id="n:1",
             skill_name="planner",
             inputs=["USER_QUERY"],
+            metadata=graph.g.nodes["n:1"].get("metadata", {}),
             timestamp=time.time(),
         ))
         
@@ -257,6 +334,7 @@ class Executor:
         # no flag. Track every second-or-later critic-fail here so the
         # final log can surface it.
         critic_fail_cap_hit: list[str] = []
+        recovery_planners_added = 0
 
         while True:
             ready = graph.ready_nodes()
@@ -295,6 +373,12 @@ class Executor:
                     tokens_in=int(result.output.get("tokens_in", 0)),
                     tokens_out=int(result.output.get("tokens_out", 0)),
                     error=result.error,
+                    prompt=prompt,
+                    output=result.output,
+                    artifacts=result.artifacts,
+                    successors=[s.model_dump(mode="json") for s in result.successors],
+                    provider=result.provider,
+                    cost=result.cost,
                     timestamp=time.time(),
                 ))
                 
@@ -328,6 +412,17 @@ class Executor:
                             node_id=new_nid,
                             skill_name=new_node_data["skill"],
                             inputs=new_node_data.get("inputs", []),
+                            metadata=new_node_data.get("metadata", {}),
+                            timestamp=time.time(),
+                        ))
+                    for rewired_nid in graph.consume_rewired_nodes():
+                        rewired_data = graph.g.nodes[rewired_nid]
+                        await emit_event(ExecutorEventNodeUpdated(
+                            type="node_updated",
+                            node_id=rewired_nid,
+                            skill_name=rewired_data["skill"],
+                            inputs=rewired_data.get("inputs", []),
+                            metadata=rewired_data.get("metadata", {}),
                             timestamp=time.time(),
                         ))
                     if graph.g.nodes[nid]["skill"] == "formatter":
@@ -342,13 +437,26 @@ class Executor:
                         failed_node_id=nid,
                     )
                     if decision.action == "skip":
+                        graph.mark(nid, "skipped")
                         print(f"  ↪ {nid} failed ({decision.reason}, "
                               f"skill={failed_skill}): {decision.note}")
                         continue
                     # action == "replan"
+                    if recovery_planners_added >= MAX_RECOVERY_PLANNERS:
+                        graph.mark(nid, "skipped")
+                        print(f"  ↪ {nid} failed ({decision.reason}, "
+                              f"skill={failed_skill}): recovery planner cap hit; skipping branch")
+                        continue
+                    recovery_planners_added += 1
+                    failure_report = build_recovery_report(
+                        graph=graph,
+                        failed_node_id=nid,
+                        base_report=decision.failure_report,
+                        reason=decision.reason,
+                    )
                     rec_nid = graph.add_node(
-                        "planner", inputs=["USER_QUERY"],
-                        metadata={"failure_report": decision.failure_report,
+                        "planner", inputs=["USER_QUERY", *reusable_upstream_ids(graph, nid)],
+                        metadata={"failure_report": failure_report,
                                   "recovers": nid,
                                   "recovery_reason": decision.reason},
                     )

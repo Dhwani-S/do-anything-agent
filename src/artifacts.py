@@ -33,7 +33,7 @@ def put(blob: bytes, *, content_type: str, source: str, descriptor: str) -> str:
             source=source,
             descriptor=descriptor,
         )
-        meta_path.write_text(meta.model_dump_json(indent=2))
+        meta_path.write_text(meta.model_dump_json(indent=2), encoding="utf-8")
     return art_id
 
 
@@ -44,7 +44,7 @@ def get_bytes(artifact_id: str) -> bytes:
 
 def get_meta(artifact_id: str) -> Artifact:
     digest = artifact_id.removeprefix("art:")
-    raw = json.loads((STORE / f"{digest}.json").read_text())
+    raw = json.loads((STORE / f"{digest}.json").read_text(encoding="utf-8"))
     return Artifact.model_validate(raw)
 
 

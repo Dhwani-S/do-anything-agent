@@ -56,6 +56,13 @@ insert a `critic` node between the writing node and the formatter.
 Its input is the writing node id. Its metadata.question repeats
 the constraint. If the critic fails, the orchestrator re-plans.
 
+When the user asks to run code and then have a critic validate the
+ranking, scoring, or code output, emit `coder`, then `critic`, then
+`formatter`. The `critic` must depend on the coder label, and the
+`formatter` must depend on the critic label, not directly on the coder.
+The runtime will insert `sandbox_executor` after `coder`, so the actual
+validated path becomes coder → sandbox_executor → critic → formatter.
+
 If MEMORY HITS appear in the prompt, the agent already has indexed
 material relevant to this query (FAISS-ranked vector hits with
 chunks). Prefer routing the answer through the existing knowledge
@@ -70,8 +77,19 @@ corpus, or concepts that should be answered from indexed documents
 attention papers), emit a `retriever` node followed by `formatter`.
 Do NOT emit `researcher` nodes for these corpus questions.
 
-If FAILURE appears in the prompt, do not re-emit the failing step
-on the same inputs.
+If FAILURE appears in the prompt, you are a recovery Planner. The old
+graph remains valid history; emit only the repair subgraph needed for
+the failed branch. Read RECOVERY_REPORT carefully:
+  - Reuse completed_reusable_upstream_nodes by referencing their exact
+    existing ids, e.g. "n:13", as inputs to new repair nodes.
+  - Do not emit researcher, retriever, or indexer nodes for facts already
+    present in completed reusable nodes.
+  - Do not emit another planner node.
+  - For critic_fail, fix the rejected target or its immediate downstream
+    work, then add the required sandbox_executor / critic / formatter path.
+    The formatter must depend on the repair critic, not directly on the
+    repaired coder.
+  - Do not re-emit the failing step on the same inputs.
 
 Example — single-item query (researcher takes USER_QUERY because
 there is nothing to fan out over):

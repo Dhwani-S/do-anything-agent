@@ -41,9 +41,10 @@ class SessionLoadError(RuntimeError):
 def _atomic_write(path: Path, data: bytes | str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_suffix(path.suffix + ".tmp")
-    mode = "wb" if isinstance(data, bytes) else "w"
-    with open(tmp, mode) as f:
-        f.write(data)
+    if isinstance(data, bytes):
+        tmp.write_bytes(data)
+    else:
+        tmp.write_text(data, encoding="utf-8")
     os.replace(tmp, path)
 
 
@@ -88,7 +89,7 @@ class SessionStore:
     def read_query(self) -> str:
         if not self.query_path.exists():
             return ""
-        return self.query_path.read_text()
+        return self.query_path.read_text(encoding="utf-8")
 
     def write_graph(self, graph_obj: nx.DiGraph) -> None:
         """Serialise the DiGraph to JSON via nx.node_link_data. Per-node
@@ -111,7 +112,7 @@ class SessionStore:
 
     def read_graph(self) -> nx.DiGraph | None:
         if self.graph_path.exists():
-            payload = json.loads(self.graph_path.read_text())
+            payload = json.loads(self.graph_path.read_text(encoding="utf-8"))
             g = nx.node_link_graph(payload, edges="edges", directed=True)
             # NOTES_RUNS round-3 review #4: a write tagged a node's `result`
             # as a typed AgentResult via `_result_typed`. If the dict no
@@ -161,7 +162,7 @@ class SessionStore:
         p = self._node_path(node_id)
         if not p.exists():
             return None
-        return NodeState.model_validate_json(p.read_text())
+        return NodeState.model_validate_json(p.read_text(encoding="utf-8"))
 
     def read_all_nodes(self) -> list[NodeState]:
         """Load every persisted NodeState in this session. Corrupt or
@@ -174,7 +175,7 @@ class SessionStore:
         states: list[NodeState] = []
         for p in sorted(self.nodes_dir.glob("n_*.json")):
             try:
-                states.append(NodeState.model_validate_json(p.read_text()))
+                states.append(NodeState.model_validate_json(p.read_text(encoding="utf-8")))
             except (OSError, ValueError) as e:
                 # OSError = unreadable; ValueError covers JSON decode +
                 # Pydantic ValidationError (which inherits ValueError).
