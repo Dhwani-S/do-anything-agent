@@ -179,3 +179,14 @@ Reset memory between attempts (S6/S7):
 
 Reset sessions between attempts (S8):
   Remove-Item src\state\sessions\* -Recurse -ErrorAction SilentlyContinue
+
+------------- Test Query
+Compare London, Paris, Berlin, Tokyo, and New York as cities for hosting a three-day international AI workshop next month.
+
+For each city, find its current population, typical weather for next month, approximate flight accessibility, and one suitable family-friendly cultural activity for attendees.
+
+In parallel, research the five cities. Then rank them using a Python scoring model that weighs population size, weather comfort, flight accessibility, and activity quality. Run the code and show the computed scores.
+
+After scoring, have a critic verify whether the ranking is justified by the gathered evidence and whether the Python scoring logic is reasonable. If the critic finds a problem, revise the scoring once and rerun it.
+
+Finish with the final ranked list, the winning city, the code output, and a short explanation of why the winner is best.
