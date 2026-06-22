@@ -71,6 +71,7 @@ function EventLog({ events }: { events: object[] }) {
             e.type === 'node_started'   ? 'border-violet-800 bg-violet-900/20 text-violet-300' :
             e.type === 'node_completed' ? 'border-emerald-800 bg-emerald-900/20 text-emerald-300' :
             e.type === 'node_created'   ? 'border-blue-800 bg-blue-900/20 text-blue-300' :
+            e.type === 'node_updated'   ? 'border-blue-800 bg-blue-900/10 text-blue-300' :
             e.type === 'memory_hit'     ? 'border-amber-800 bg-amber-900/20 text-amber-300' :
             e.type === 'executor_end'   ? 'border-green-600 bg-green-900/30 text-green-300' :
             e.type === 'error'          ? 'border-red-800 bg-red-900/20 text-red-300' :
