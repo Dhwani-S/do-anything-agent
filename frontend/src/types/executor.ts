@@ -36,6 +36,7 @@ export interface NodeCompletedEvent {
   tokens_in: number;
   tokens_out: number;
   error: string | null;
+  error_code?: 'gateway_blocked' | 'extraction_failed' | 'interaction_failed' | 'timeout' | 'vlm_unavailable' | null;
   prompt: string | null;
   output: Record<string, unknown>;
   artifacts: string[];
@@ -111,6 +112,7 @@ export interface DAGNode {
   tokens_in?: number;
   tokens_out?: number;
   error?: string;
+  error_code?: 'gateway_blocked' | 'extraction_failed' | 'interaction_failed' | 'timeout' | 'vlm_unavailable';
   prompt?: string | null;
   output?: Record<string, unknown>;
   artifacts?: string[];

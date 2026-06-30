@@ -200,6 +200,7 @@ class ExecutorEventNodeCompleted(BaseModel):
     tokens_in: int = 0
     tokens_out: int = 0
     error: str | None = None
+    error_code: ErrorCode | None = None
     prompt: str | None = None
     output: dict = Field(default_factory=dict)
     artifacts: list[str] = Field(default_factory=list)

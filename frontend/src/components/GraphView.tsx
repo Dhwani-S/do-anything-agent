@@ -186,6 +186,18 @@ function CodeBlock({ value, empty = 'not available yet' }: { value: unknown; emp
   );
 }
 
+function browserOutputSummary(node: DAGNode): { path?: string; turns?: number; finalUrl?: string; actions?: number } | null {
+  if (node.skill_name !== 'browser') return null;
+  const output = node.output as Record<string, unknown> | undefined;
+  if (!output) return null;
+  return {
+    path: typeof output.path === 'string' ? output.path : undefined,
+    turns: typeof output.turns === 'number' ? output.turns : undefined,
+    finalUrl: typeof output.final_url === 'string' ? output.final_url : undefined,
+    actions: Array.isArray(output.actions) ? output.actions.length : undefined,
+  };
+}
+
 function NodeDetail({ node, events, onClose }: { node: DAGNode; events: ExecutorEvent[]; onClose: () => void }) {
   const nodeEvents = events.filter((event) => 'node_id' in event && event.node_id === node.id);
   const startedEvent = nodeEvents.find((event) => event.type === 'node_started');
@@ -195,6 +207,7 @@ function NodeDetail({ node, events, onClose }: { node: DAGNode; events: Executor
   );
   const promptInputs = extractPromptInputs(node.prompt);
   const metadataEntries = Object.entries(node.metadata ?? {});
+  const browserSummary = browserOutputSummary(node);
 
   return (
     <div className="absolute right-0 top-0 bottom-0 z-10 flex w-[460px] max-w-[48%] flex-col overflow-hidden border-l border-[var(--border)] bg-[var(--bg-elev)] text-xs shadow-2xl">
@@ -292,6 +305,34 @@ function NodeDetail({ node, events, onClose }: { node: DAGNode; events: Executor
         {node.error && (
           <DetailSection title="Error">
             <p className="bg-red-900/30 border border-red-800 rounded-lg p-2 text-red-300 font-mono leading-relaxed">{node.error}</p>
+            {node.error_code && (
+              <p className="mt-2 inline-flex rounded-md bg-red-950/60 border border-red-800 px-2 py-1 font-mono text-[10px] text-red-300">
+                error_code: {node.error_code}
+              </p>
+            )}
+          </DetailSection>
+        )}
+
+        {browserSummary && (
+          <DetailSection title="Browser Summary">
+            <div className="grid grid-cols-2 gap-2">
+              <div className="rounded-md bg-[var(--bg-soft)] p-2">
+                <p className="text-[9px] text-[var(--text-faint)]">Path</p>
+                <p className="font-mono text-[var(--text-main)]">{browserSummary.path ?? 'unknown'}</p>
+              </div>
+              <div className="rounded-md bg-[var(--bg-soft)] p-2">
+                <p className="text-[9px] text-[var(--text-faint)]">Turns</p>
+                <p className="font-mono text-[var(--text-main)]">{browserSummary.turns ?? 0}</p>
+              </div>
+              <div className="rounded-md bg-[var(--bg-soft)] p-2">
+                <p className="text-[9px] text-[var(--text-faint)]">Actions</p>
+                <p className="font-mono text-[var(--text-main)]">{browserSummary.actions ?? 0}</p>
+              </div>
+              <div className="rounded-md bg-[var(--bg-soft)] p-2">
+                <p className="text-[9px] text-[var(--text-faint)]">Final URL</p>
+                <p className="font-mono text-[var(--text-main)] break-all">{browserSummary.finalUrl ?? 'n/a'}</p>
+              </div>
+            </div>
           </DetailSection>
         )}
 

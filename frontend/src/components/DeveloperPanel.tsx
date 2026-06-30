@@ -82,6 +82,10 @@ function EventLog({ events }: { events: object[] }) {
           {e.node_id && <span className="opacity-60 mr-2">{e.node_id}</span>}
           {e.skill_name && <span className="text-[var(--text-main)]">{e.skill_name}</span>}
           {e.duration_s !== undefined && <span className="opacity-60 ml-2">{e.duration_s.toFixed(2)}s</span>}
+          {e.type === 'node_completed' && e.skill_name === 'browser' && e.output?.path && (
+            <span className="opacity-80 ml-2">path={e.output.path}</span>
+          )}
+          {e.error_code && <span className="ml-2 text-red-300">[{e.error_code}]</span>}
           {e.final_answer && <span className="opacity-80 ml-2 truncate block">{e.final_answer.slice(0, 80)}</span>}
           {e.chunk_preview && <span className="opacity-70 ml-2 truncate block">{e.chunk_preview.slice(0, 60)}</span>}
           {e.message && <span className="ml-2">{e.message}</span>}

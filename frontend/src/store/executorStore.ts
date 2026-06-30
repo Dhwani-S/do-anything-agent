@@ -200,6 +200,7 @@ export const useExecutorStore = create<ExecutorState>()(
           tokens_in: event.tokens_in,
           tokens_out: event.tokens_out,
           error: event.error ?? undefined,
+          error_code: event.error_code ?? undefined,
           prompt: event.prompt,
           output: event.output,
           artifacts: event.artifacts,

@@ -49,6 +49,7 @@ GENUINE_UPSTREAM_STRINGS = [
     "file not found: /nonexistent/path.txt",
     "(not found)",
     "Tavily API returned no results for query 'xyz'",
+    "gateway_blocked: captcha marker on https://example.com",
     "",  # empty error text — treat as upstream by convention
 ]
 
@@ -103,6 +104,17 @@ def test_plan_recovery_upstream_failure_replans() -> None:
     assert d.reason == "upstream_failure"
     assert d.failure_report and "n:7" in d.failure_report
     assert "researcher" in d.failure_report
+
+
+def test_plan_recovery_gateway_blocked_browser_replans() -> None:
+    d = plan_recovery(
+        failed_skill="browser",
+        error_text="gateway_blocked: cloudflare marker on https://target.site",
+        failed_node_id="n:9",
+    )
+    assert d.action == "replan"
+    assert d.reason == "upstream_failure"
+    assert d.failure_report and "gateway_blocked" in d.failure_report
 
 
 # ── Critic-fail splice tests (review round-3 #3) ────────────────────────────

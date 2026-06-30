@@ -373,6 +373,7 @@ class Executor:
                     tokens_in=int(result.output.get("tokens_in", 0)),
                     tokens_out=int(result.output.get("tokens_out", 0)),
                     error=result.error,
+                    error_code=result.error_code,
                     prompt=prompt,
                     output=result.output,
                     artifacts=result.artifacts,
