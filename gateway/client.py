@@ -18,7 +18,7 @@ import os
 import httpx
 from typing import Any, Optional
 
-DEFAULT_URL = os.getenv("LLM_GATEWAY_V8_URL", "http://localhost:8108")
+DEFAULT_URL = os.getenv("LLM_GATEWAY_V9_URL", "http://localhost:8109")
 
 
 class LLM:

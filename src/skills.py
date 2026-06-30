@@ -307,6 +307,23 @@ async def run_skill(skill: Skill, node_id: str, graph_nodes,
             elapsed_s=time.time() - started,
         ), rendered
 
+    if skill.name == "browser":
+        node_dict = graph_nodes[node_id]
+        node_spec = NodeSpec(
+            skill="browser",
+            inputs=node_dict.get("inputs") or [],
+            metadata=node_dict.get("metadata") or {},
+        )
+        from browser.skill import BrowserSkill
+        sk = BrowserSkill(
+            artifacts_root=str(ROOT / "state" / "sessions" / session_id / "browser"),
+            session=session_id,
+        )
+        result = await sk.run(node_spec)
+        if not result.elapsed_s:
+            result.elapsed_s = time.time() - started
+        return result, rendered
+
     tools = tool_payload(skill.tools_allowed)
     if tools:
         # Multi-turn tool-use loop. mcp_runner opens one MCP stdio session

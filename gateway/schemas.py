@@ -1,4 +1,4 @@
-"""Pydantic v2 request/response models for llm_gatewayV8."""
+"""Pydantic v2 request/response models for llm_gatewayV9."""
 from typing import Any, Literal, Optional, Union
 from pydantic import BaseModel, Field, ConfigDict
 
@@ -124,3 +124,27 @@ class BatchChatRequest(BaseModel):
     bounded parallelism so providers' rate limits are respected centrally."""
     calls: list[ChatRequest]
     max_concurrency: int = 4
+
+
+class VisionRequest(BaseModel):
+    """V9: typed shim for single-image vision calls. Lower-ceremony than
+    /v1/chat for the set-of-marks loop — callers send one image, one prompt,
+    and (optionally) a JSON schema for typed output, and the gateway forces
+    routing to a vision-capable provider.
+
+    Accepts either a data: URL (base64) or an http(s) URL for `image`.
+    The gateway pre-resolves http URLs the same way /v1/chat does.
+    """
+    image: str = Field(description="data: URL or http(s) URL of the image")
+    prompt: str
+    system: Optional[str] = None
+    schema_: Optional[dict[str, Any]] = Field(default=None, alias="schema")
+    schema_name: str = "out"
+    model: Optional[str] = None
+    provider: Optional[str] = None
+    max_tokens: int = 1024
+    temperature: float = 0.0
+    agent: Optional[str] = None
+    session: Optional[str] = None
+
+    model_config = ConfigDict(populate_by_name=True)

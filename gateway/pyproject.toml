@@ -1,7 +1,7 @@
 [project]
-name = "llm-gateway-v8"
+name = "llm-gateway-v9"
 version = "0.1.0"
-description = "LLM Gateway V8 — V7 plus agent tagging, /v1/chat/batch, and /v1/cost/by_agent."
+description = "LLM Gateway V9 — V8 plus multimodal (image) input. Auto-routes vision requests to vision-capable models."
 requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.110",

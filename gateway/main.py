@@ -10,24 +10,19 @@ from fastapi.staticfiles import StaticFiles
 from jsonschema import Draft202012Validator, ValidationError
 
 ROOT = Path(__file__).parent
-# Look for .env beside the gateway first, then at the package root one
-# level up. Both placements work; first hit wins.
-for _candidate in (ROOT / ".env", ROOT.parent / ".env"):
-    if _candidate.exists():
-        load_dotenv(_candidate)
-        break
+load_dotenv(ROOT.parent / ".env")
 
 import db
 import providers as P
 from router import Router, RouterPool, DEFAULT_ROUTER_ORDER, LIMITS, SHORTCUTS, resolve
 from cache import GeminiCache
-from schemas import ChatRequest, ChatResponse, ToolCall, RouterDecision, EmbedRequest, EmbedResponse, BatchChatRequest
+from schemas import ChatRequest, ChatResponse, ToolCall, RouterDecision, EmbedRequest, EmbedResponse, BatchChatRequest, VisionRequest, ResponseFormat
 import embedders as E
 
 DEFAULT_ORDER = ["ollama", "gemini", "nvidia", "groq", "cerebras", "openrouter", "github"]
 ORDER = [x.strip() for x in os.getenv("LLM_ORDER", ",".join(DEFAULT_ORDER)).split(",") if x.strip()]
 ROUTER_ORDER = [x.strip() for x in os.getenv("ROUTER_ORDER", ",".join(DEFAULT_ROUTER_ORDER)).split(",") if x.strip()]
-PORT = int(os.getenv("GATEWAY_V8_PORT", "8108"))
+PORT = int(os.getenv("GATEWAY_V9_PORT", "8109"))
 
 # V8: agent_routing.yaml maps `agent="<name>"` to a preferred provider name.
 # The caller's explicit `provider=` still wins. Loaded once at import; the
@@ -207,7 +202,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="LLM Gateway V8", lifespan=lifespan)
+app = FastAPI(title="LLM Gateway V9", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=str(ROOT / "static")), name="static")
 
 
@@ -231,7 +226,17 @@ def _system_blocks(req: ChatRequest):
 
 
 def _est_tokens(messages, system_blocks, max_tokens):
-    chars = sum(len(str(m.get("content", ""))) for m in messages)
+    chars = 0
+    for m in messages:
+        c = m.get("content", "")
+        if isinstance(c, list):
+            chars += len(P._extract_text_blocks(c))
+            # V9: image blocks count as ~258 tokens each on Gemini, ~85 base
+            # tokens on OpenAI; use 300 chars per image as a coarse estimate
+            # (gets multiplied by ~0.25 in chars→tokens below).
+            chars += 1200 * sum(1 for b in c if isinstance(b, dict) and b.get("type") in ("image_url", "image", "input_image"))
+        else:
+            chars += len(str(c))
     if isinstance(system_blocks, str):
         chars += len(system_blocks)
     elif isinstance(system_blocks, list):
@@ -271,7 +276,65 @@ def _required_caps(req: ChatRequest):
     if req.tools: caps.append("tools")
     if req.reasoning and req.reasoning != "off": caps.append("reasoning")
     if req.response_format: caps.append("structured")
+    # V9: auto-detect multimodal content. If any message carries image blocks,
+    # only providers whose configured model supports vision are eligible.
+    if req.messages:
+        for m in req.messages:
+            if P._content_has_image(m.get("content")):
+                caps.append("vision")
+                break
     return caps
+
+
+async def _resolve_image_urls(messages: list[dict]) -> list[dict]:
+    """V9: fetch any http(s) image URLs in message content and inline them as
+    data: URLs. Providers downstream only ever see data: URLs, which keeps
+    Gemini/Ollama translation paths simple. Mutates a copy; original is intact.
+    """
+    import base64
+    import httpx as _httpx
+
+    async def _fetch_to_data_url(url: str) -> str:
+        # A real-browser UA — Wikimedia and many CDNs refuse python-default UAs.
+        headers = {
+            "User-Agent": "Mozilla/5.0 (compatible; LLMGatewayV9/0.1; +image-resolver)",
+            "Accept": "image/*,*/*;q=0.8",
+        }
+        async with _httpx.AsyncClient(timeout=30, follow_redirects=True, headers=headers) as c:
+            try:
+                r = await c.get(url)
+                r.raise_for_status()
+            except _httpx.HTTPError as e:
+                raise HTTPException(400, f"failed to fetch image url {url!r}: {e}")
+            mt = (r.headers.get("content-type") or "image/png").split(";")[0].strip()
+            b64 = base64.b64encode(r.content).decode()
+            return f"data:{mt};base64,{b64}"
+
+    out = []
+    for m in messages:
+        content = m.get("content")
+        if not isinstance(content, list):
+            out.append(m)
+            continue
+        new_blocks = []
+        changed = False
+        for b in content:
+            if isinstance(b, dict) and b.get("type") == "image_url":
+                iu = b.get("image_url")
+                url = iu.get("url") if isinstance(iu, dict) else iu
+                if isinstance(url, str) and url.startswith(("http://", "https://")):
+                    data_url = await _fetch_to_data_url(url)
+                    new_blocks.append({"type": "image_url", "image_url": {"url": data_url}})
+                    changed = True
+                    continue
+            new_blocks.append(b)
+        if changed:
+            new_m = dict(m)
+            new_m["content"] = new_blocks
+            out.append(new_m)
+        else:
+            out.append(m)
+    return out
 
 
 def _validate_structured(text: str, schema: dict):
@@ -288,8 +351,16 @@ async def chat(req: ChatRequest):
     router = app.state.router
     router_pool = app.state.router_pool
     messages = _normalize_messages(req)
+    # V9: pre-resolve any http(s) image URLs to data: URLs once, centrally.
+    # Cheap when there are no images (function is a pass-through).
+    if any(P._content_has_image(m.get("content")) for m in messages):
+        messages = await _resolve_image_urls(messages)
     system_blocks = _system_blocks(req)
-    prompt_text = "".join(str(m.get("content", "")) for m in messages)
+    prompt_text = "".join(
+        (P._extract_text_blocks(m.get("content", "")) if isinstance(m.get("content"), list)
+         else str(m.get("content", "")))
+        for m in messages
+    )
     est = _est_tokens(messages, system_blocks, req.max_tokens)
     explicit_override = bool(req.provider)
     required_caps = _required_caps(req)
@@ -567,12 +638,61 @@ async def chat_batch(req: BatchChatRequest):
     return {"results": results}
 
 
+@app.post("/v1/vision")
+async def vision(req: VisionRequest):
+    """V9: single-image vision call. Thin shim over /v1/chat that:
+      - packs `image` + `prompt` into a multimodal user message
+      - forces routing to a vision-capable provider (via `vision` cap)
+      - optionally enforces a JSON schema for structured output
+
+    Returns the same ChatResponse shape as /v1/chat; if a schema was provided
+    the parsed object is in `.parsed`.
+    """
+    content: list[dict[str, Any]] = [{"type": "text", "text": req.prompt}]
+    content.append({"type": "image_url", "image_url": {"url": req.image}})
+
+    inner = ChatRequest(
+        messages=[{"role": "user", "content": content}],
+        system=req.system,
+        provider=req.provider,
+        model=req.model,
+        max_tokens=req.max_tokens,
+        temperature=req.temperature,
+        response_format=(
+            ResponseFormat(type="json_schema", schema=req.schema_, name=req.schema_name, strict=True)
+            if req.schema_ else None
+        ),
+        agent=req.agent,
+        session=req.session,
+    )
+    return await chat(inner)
+
+
 @app.get("/v1/cost/by_agent")
-async def cost_by_agent(session: Optional[str] = None):
+async def cost_by_agent(session: Optional[str] = None, agent: Optional[str] = None):
     """Per-agent rollup. With ?session=<sid> the rollup is scoped to one
-    flow-run; without it, the calendar day. Used by the orchestrator's
-    replay step to show how much each skill cost."""
-    return db.by_agent(session=session)
+    flow-run; with ?agent=<name> the rollup is scoped to a single agent tag;
+    without either, the calendar day. Used by the orchestrator's replay step
+    to show how much each skill cost.
+
+    V9: each row now carries a `dollars` field derived from `pricing.py`'s
+    table.  $0 for free-tier providers (the course default); accurate-ish
+    for paid providers.  Tokens remain the headline number.
+    """
+    import pricing as _pricing
+    raw = db.by_agent(session=session)
+    if agent:
+        raw = {agent: raw.get(agent, [])}
+    out: dict[str, list[dict]] = {}
+    for ag, rows in raw.items():
+        out[ag] = []
+        for r in rows:
+            r2 = dict(r)
+            r2["dollars"] = _pricing.estimate_usd(
+                r["provider"], r.get("in_tok") or 0, r.get("out_tok") or 0
+            )
+            out[ag].append(r2)
+    return out
 
 
 @app.post("/v1/embed")

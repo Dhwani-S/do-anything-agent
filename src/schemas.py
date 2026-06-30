@@ -109,6 +109,16 @@ class NodeSpec(BaseModel):
     metadata: dict = Field(default_factory=dict)
 
 
+# Session 9: structured browser failure taxonomy.
+ErrorCode = Literal[
+    "gateway_blocked",
+    "extraction_failed",
+    "interaction_failed",
+    "timeout",
+    "vlm_unavailable",
+]
+
+
 class AgentResult(BaseModel):
     """What every skill returns. The boundary between flow.py and a skill
     is exactly this model — orchestrator and skills never share dicts."""
@@ -122,6 +132,19 @@ class AgentResult(BaseModel):
     elapsed_s: float = 0.0
     provider: str = ""
     error: str | None = None
+    error_code: ErrorCode | None = None
+
+
+class BrowserOutput(BaseModel):
+    """Typed output payload returned by the Session 9 browser skill."""
+
+    url: str
+    goal: str
+    path: Literal["extract", "deterministic", "a11y", "vision"]
+    turns: int = 0
+    content: str | None = None
+    actions: list[dict] = Field(default_factory=list)
+    final_url: str | None = None
 
 
 class NodeState(BaseModel):

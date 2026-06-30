@@ -20,9 +20,97 @@ The returned dict is normalised:
 each adapter translates them to its native shape.
 """
 from __future__ import annotations
-import os, json, uuid, hashlib, re
+import os, json, uuid, hashlib, re, base64
 from typing import AsyncIterator, Optional, Any
 import httpx
+
+
+# ────────────────────────────────────────────────────────────────────────────
+# V9 multimodal helpers
+# ────────────────────────────────────────────────────────────────────────────
+# Canonical input form for image content (matches OpenAI/LangChain shape):
+#   {"role": "user", "content": [
+#       {"type": "text", "text": "..."},
+#       {"type": "image_url", "image_url": {"url": "data:image/png;base64,..."}}
+#   ]}
+# By the time content reaches a provider, http(s) URLs have been pre-resolved
+# to data: URLs by main._resolve_image_urls — so providers only see data: URLs.
+
+VISION_MODEL_HINTS = (
+    "gpt-4o", "gpt-4.1", "gpt-5", "gpt-4-turbo",
+    "claude-3", "claude-4", "claude-opus", "claude-sonnet", "claude-haiku",
+    "gemini",
+    "llava", "qwen2-vl", "qwen2.5-vl", "qwen3-vl",
+    "llama-3.2-11b-vision", "llama-3.2-90b-vision",
+    "minicpm-v", "molmo", "pixtral", "internvl",
+    "gemma3", "phi-4-multimodal",
+    "-vl", "vision", "vlm",
+)
+
+
+def _model_supports_vision(provider: str, model: str) -> bool:
+    m = (model or "").lower()
+    if provider == "gemini":
+        return True  # all current gemini chat models are multimodal
+    if provider in ("cerebras",):
+        return False  # text-only catalogue
+    return any(h in m for h in VISION_MODEL_HINTS)
+
+
+def _content_has_image(content: Any) -> bool:
+    if not isinstance(content, list):
+        return False
+    for b in content:
+        if isinstance(b, dict) and b.get("type") in ("image_url", "image", "input_image"):
+            return True
+    return False
+
+
+def _iter_image_blocks(content: Any):
+    """Yield (media_type, base64_data) for each image block in content.
+    Assumes URLs have already been resolved to data: form."""
+    if not isinstance(content, list):
+        return
+    for b in content:
+        if not isinstance(b, dict):
+            continue
+        btype = b.get("type")
+        url = None
+        if btype == "image_url":
+            iu = b.get("image_url")
+            url = iu.get("url") if isinstance(iu, dict) else iu
+        elif btype in ("image", "input_image"):
+            # Anthropic-style {"source": {"type":"base64","media_type":..,"data":..}}
+            src = b.get("source") or {}
+            if src.get("type") == "base64":
+                yield src.get("media_type", "image/png"), src.get("data", "")
+                continue
+            url = b.get("url") or src.get("url")
+        if not url:
+            continue
+        if url.startswith("data:"):
+            head, _, b64 = url.partition(",")
+            mt = head[5:].split(";")[0] or "image/png"
+            yield mt, b64
+        # Non-data URLs should not reach here; they're pre-resolved upstream.
+
+
+def _extract_text_blocks(content: Any) -> str:
+    """Concatenate the text portions of a multimodal content list."""
+    if isinstance(content, str):
+        return content
+    if not isinstance(content, list):
+        return ""
+    parts = []
+    for b in content:
+        if isinstance(b, str):
+            parts.append(b)
+        elif isinstance(b, dict):
+            if b.get("type") == "text" and "text" in b:
+                parts.append(b["text"])
+            elif "text" in b and b.get("type") not in ("image_url", "image", "input_image"):
+                parts.append(b["text"])
+    return "\n".join(parts)
 
 
 class ProviderError(Exception):
@@ -114,7 +202,7 @@ def _model_supports_reasoning(model: str) -> bool:
 class OpenAICompatProvider(BaseProvider):
     capabilities = {
         "tools": True, "caching": True, "reasoning": False,
-        "structured": True, "parallel_tools": True,
+        "structured": True, "parallel_tools": True, "vision": False,
     }
 
     def _headers(self):
@@ -135,7 +223,12 @@ class OpenAICompatProvider(BaseProvider):
         return out
 
     def _translate_messages(self, messages, system_text):
-        """Translate canonical messages (incl role=tool) to OpenAI shape."""
+        """Translate canonical messages (incl role=tool) to OpenAI shape.
+
+        Multimodal content lists (text + image_url blocks) are passed through
+        as-is on user messages — the OpenAI Chat API natively accepts them.
+        Tool/assistant messages are forced to plain strings.
+        """
         out = []
         if system_text:
             out.append({"role": "system", "content": system_text})
@@ -165,9 +258,18 @@ class OpenAICompatProvider(BaseProvider):
                             "arguments": json.dumps(tc.get("arguments") or {}),
                         },
                     })
-                out.append({"role": "assistant", "content": m.get("content") or "", "tool_calls": tcs})
+                # assistant content must be a string for OpenAI
+                content = m.get("content") or ""
+                if isinstance(content, list):
+                    content = _extract_text_blocks(content)
+                out.append({"role": "assistant", "content": content, "tool_calls": tcs})
                 continue
-            out.append({"role": r, "content": m.get("content", "")})
+            content = m.get("content", "")
+            if isinstance(content, list):
+                # User multimodal: pass list of blocks through unchanged for OpenAI.
+                out.append({"role": r, "content": content})
+            else:
+                out.append({"role": r, "content": content})
         return out
 
     def _apply_response_format(self, body, response_format):
@@ -224,6 +326,26 @@ class OpenAICompatProvider(BaseProvider):
                     r = await c.post(f"{self.base_url}/chat/completions", headers=self._headers(), json=body)
                 if r.status_code != 200 and "json_schema" in (body.get("response_format") or {}).get("type", ""):
                     body["response_format"] = {"type": "json_object"}
+                    r = await c.post(f"{self.base_url}/chat/completions", headers=self._headers(), json=body)
+                # V9: github / azure-openai-flavoured surfaces refuse
+                # response_format=json_object unless the literal word "json"
+                # appears in `messages`. Inject a one-line hint into the
+                # system message and retry. (Gateway-owns-quirks rule.)
+                if r.status_code == 400 and "json" in r.text.lower() and (
+                    body.get("response_format") or {}
+                ).get("type") == "json_object":
+                    _msgs = body.get("messages") or []
+                    if _msgs and _msgs[0].get("role") == "system":
+                        _msgs[0]["content"] = (
+                            (_msgs[0].get("content") or "")
+                            + "\n\nReturn your reply as a single JSON object."
+                        )
+                    else:
+                        _msgs.insert(0, {
+                            "role": "system",
+                            "content": "Return your reply as a single JSON object.",
+                        })
+                    body["messages"] = _msgs
                     r = await c.post(f"{self.base_url}/chat/completions", headers=self._headers(), json=body)
                 if r.status_code != 200:
                     raise ProviderError(
@@ -358,7 +480,7 @@ class GeminiProvider(BaseProvider):
     name = "gemini"
     capabilities = {
         "tools": True, "caching": True, "reasoning": True,
-        "structured": True, "parallel_tools": True,
+        "structured": True, "parallel_tools": True, "vision": True,
     }
 
     def __init__(self, api_key, model, cache_store):
@@ -415,7 +537,22 @@ class GeminiProvider(BaseProvider):
                 contents.append({"role": "model", "parts": parts})
                 continue
             content = m.get("content", "")
-            contents.append({"role": "user", "parts": [{"text": content if isinstance(content, str) else json.dumps(content)}]})
+            parts = []
+            if isinstance(content, str):
+                if content:
+                    parts.append({"text": content})
+            elif isinstance(content, list):
+                # Multimodal: emit text parts and inline_data parts for images.
+                text = _extract_text_blocks(content)
+                if text:
+                    parts.append({"text": text})
+                for mt, b64 in _iter_image_blocks(content):
+                    parts.append({"inline_data": {"mime_type": mt, "data": b64}})
+            else:
+                parts.append({"text": json.dumps(content)})
+            if not parts:
+                parts = [{"text": ""}]
+            contents.append({"role": "user", "parts": parts})
         return contents
 
     async def chat(self, messages, *, max_tokens=2048, temperature=0.7, model=None,
@@ -651,7 +788,7 @@ class OllamaProvider(BaseProvider):
     name = "ollama"
     capabilities = {
         "tools": True, "caching": False, "reasoning": False,
-        "structured": True, "parallel_tools": False,
+        "structured": True, "parallel_tools": False, "vision": False,
     }
 
     def __init__(self, model, base_url="http://localhost:11434"):
@@ -681,9 +818,21 @@ class OllamaProvider(BaseProvider):
                 tcs = []
                 for tc in m["tool_calls"]:
                     tcs.append({"function": {"name": tc["name"], "arguments": tc.get("arguments") or {}}})
-                out.append({"role": "assistant", "content": m.get("content") or "", "tool_calls": tcs})
+                content = m.get("content") or ""
+                if isinstance(content, list):
+                    content = _extract_text_blocks(content)
+                out.append({"role": "assistant", "content": content, "tool_calls": tcs})
                 continue
-            out.append({"role": r, "content": m.get("content", "")})
+            content = m.get("content", "")
+            if isinstance(content, list):
+                # Ollama vision format: separate `images` field with base64 strings.
+                msg = {"role": r, "content": _extract_text_blocks(content)}
+                images = [b64 for _, b64 in _iter_image_blocks(content)]
+                if images:
+                    msg["images"] = images
+                out.append(msg)
+            else:
+                out.append({"role": r, "content": content})
         return out
 
     async def chat(self, messages, *, max_tokens=2048, temperature=0.7, model=None,
@@ -806,6 +955,8 @@ def model_capabilities(provider_name: str, model: str, default_caps: dict) -> di
         caps["reasoning"] = False
     if provider_name in ("groq", "cerebras", "nvidia", "openrouter", "github"):
         caps["reasoning"] = _model_supports_reasoning(model)
+    # V9: vision is fully model-dependent. Override per configured model.
+    caps["vision"] = _model_supports_vision(provider_name, model)
     return caps
 
 
@@ -831,6 +982,11 @@ def build_providers(cache_store):
         out["github"] = GitHubProvider(k, os.getenv("GITHUB_MODEL", "openai/gpt-4.1-mini"))
     if om := os.getenv("OLLAMA_MODEL"):
         out["ollama"] = OllamaProvider(om, os.getenv("OLLAMA_URL", "http://localhost:11434"))
+    # V9: bake per-model capability overrides (vision/reasoning) into each
+    # instance, so Router.pick() — which reads provider.capabilities directly —
+    # sees the resolved truth instead of the class-level default.
+    for name, p in out.items():
+        p.capabilities = model_capabilities(name, p.model, getattr(p, "capabilities", {}))
     return out
 
 

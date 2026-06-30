@@ -93,6 +93,12 @@ coder:
 
 browser:
   prompt: prompts/browser.md
-  temperature: 0.3
-  max_tokens: 1500
-  description: STUB. Reserved for Session 9.
+  # Browser runs through its own internal cascade (extract/deterministic/
+  # a11y/vision), so temperature and max_tokens are metadata only.
+  temperature: 0.0
+  max_tokens: 1024
+  description: |
+    Fetches and interacts with web pages through a four-layer cascade
+    (extract, deterministic, a11y, vision). Inputs in metadata: url
+    (required) and goal (required). Returns BrowserOutput with the
+    chosen layer surfaced as output.path.
